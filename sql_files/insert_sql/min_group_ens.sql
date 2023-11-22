@@ -1,0 +1,72 @@
+INSERT INTO minimum_lesson_places (lesson_id,min_number)
+VALUES
+  (41,9),
+  (42,4),
+  (43,9),
+  (44,9),
+  (45,6),
+  (46,5),
+  (47,6),
+  (48,9),
+  (49,6),
+  (50,7);
+INSERT INTO minimum_lesson_places (lesson_id,min_number)
+VALUES
+  (51,5),
+  (52,7),
+  (53,3),
+  (54,10),
+  (55,10),
+  (56,6),
+  (57,8),
+  (58,9),
+  (59,7),
+  (60,4);
+INSERT INTO minimum_lesson_places (lesson_id,min_number)
+VALUES
+  (61,4),
+  (62,6),
+  (63,6),
+  (64,4),
+  (65,2),
+  (66,4),
+  (67,9),
+  (68,8),
+  (69,8),
+  (70,7);
+INSERT INTO minimum_lesson_places (lesson_id,min_number)
+VALUES
+  (71,6),
+  (72,4),
+  (73,4),
+  (74,6),
+  (75,4),
+  (76,4),
+  (77,2),
+  (78,6),
+  (79,9),
+  (80,10);
+INSERT INTO minimum_lesson_places (lesson_id,min_number)
+VALUES
+  (81,5),
+  (82,6),
+  (83,3),
+  (84,4),
+  (85,4),
+  (86,9),
+  (87,7),
+  (88,6),
+  (89,4),
+  (90,6);
+INSERT INTO minimum_lesson_places (lesson_id,min_number)
+VALUES
+  (91,7),
+  (92,4),
+  (93,7),
+  (94,8),
+  (95,7),
+  (96,3),
+  (97,7),
+  (98,8),
+  (99,10),
+  (100,9);
