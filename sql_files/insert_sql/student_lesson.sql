@@ -1,0 +1,265 @@
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (1,2),
+  (2,4),
+  (3,6),
+  (4,8),
+  (5,10),
+  (6,12),
+  (7,14),
+  (8,16),
+  (9,18),
+  (10,20);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (11,22),
+  (12,24),
+  (13,26),
+  (14,28),
+  (15,30),
+  (16,32),
+  (17,34),
+  (18,36),
+  (19,38),
+  (20,40);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (21,42),
+  (22,44),
+  (23,46),
+  (24,48),
+  (25,50),
+  (26,52),
+  (27,54),
+  (28,56),
+  (29,58),
+  (30,60);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (31,62),
+  (32,64),
+  (33,66),
+  (34,68),
+  (35,70),
+  (36,72),
+  (37,74),
+  (38,76),
+  (39,78),
+  (40,80);
+  INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (41,80),
+  (42,79),
+  (43,78),
+  (44,77),
+  (45,76),
+  (46,75),
+  (47,74),
+  (48,73),
+  (49,72),
+  (50,71);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (51,70),
+  (52,69),
+  (53,68),
+  (54,67),
+  (55,66),
+  (56,65),
+  (57,64),
+  (58,63),
+  (59,62),
+  (60,61);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (61,60),
+  (62,59),
+  (63,58),
+  (64,57),
+  (65,56),
+  (66,55),
+  (67,54),
+  (68,53),
+  (69,52),
+  (70,51);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (71,50),
+  (72,49),
+  (73,48),
+  (74,47),
+  (75,46),
+  (76,45),
+  (77,44),
+  (78,43),
+  (79,42),
+  (80,41);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (81,40),
+  (82,39),
+  (83,38),
+  (84,37),
+  (85,36),
+  (86,35),
+  (87,34),
+  (88,33),
+  (89,32),
+  (90,31);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (91,30),
+  (92,29),
+  (93,28),
+  (94,27),
+  (95,26),
+  (96,25),
+  (97,24),
+  (98,23),
+  (99,22),
+  (100,21);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (41,1),
+  (42,2),
+  (43,3),
+  (44,4),
+  (45,5),
+  (46,6),
+  (47,7),
+  (48,8),
+  (49,9),
+  (50,10);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (51,11),
+  (52,12),
+  (53,13),
+  (54,14),
+  (55,15),
+  (56,16),
+  (57,17),
+  (58,18),
+  (59,19),
+  (60,20);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (61,21),
+  (62,22),
+  (63,23),
+  (64,24),
+  (65,25),
+  (66,26),
+  (67,27),
+  (68,28),
+  (69,29),
+  (70,30);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (71,31),
+  (72,32),
+  (73,33),
+  (74,34),
+  (75,35),
+  (76,36),
+  (77,37),
+  (78,38),
+  (79,39),
+  (80,40);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (81,41),
+  (82,42),
+  (83,43),
+  (84,44),
+  (85,45),
+  (86,46),
+  (87,47),
+  (88,48),
+  (89,49),
+  (90,50);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (91,51),
+  (92,52),
+  (93,53),
+  (94,54),
+  (95,55),
+  (96,56),
+  (97,57),
+  (98,58),
+  (99,59),
+  (100,60);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (41,60),
+  (42,59),
+  (43,58),
+  (44,57),
+  (45,56),
+  (46,55),
+  (47,54),
+  (48,53),
+  (49,52),
+  (50,51);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (51,50),
+  (52,49),
+  (53,48),
+  (54,47),
+  (55,46),
+  (56,45),
+  (57,44),
+  (58,43),
+  (59,42),
+  (60,41);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (61,40),
+  (62,39),
+  (63,38),
+  (64,37),
+  (65,36),
+  (66,35),
+  (67,34),
+  (68,33),
+  (69,32),
+  (70,31);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (71,30),
+  (72,29),
+  (73,28),
+  (74,27),
+  (75,26),
+  (76,25),
+  (77,24),
+  (78,23),
+  (79,22),
+  (80,21);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (81,20),
+  (82,19),
+  (83,18),
+  (84,17),
+  (85,16),
+  (86,15),
+  (87,14),
+  (88,13),
+  (89,12),
+  (90,11);
+INSERT INTO student_lesson (lesson_id,student_id)
+VALUES
+  (91,10),
+  (92,9),
+  (93,8),
+  (94,7),
+  (95,6),
+  (96,5),
+  (97,4),
+  (98,3),
+  (99,2),
+  (100,1);
+

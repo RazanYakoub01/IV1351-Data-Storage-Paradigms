@@ -135,20 +135,11 @@ CREATE TABLE lesson (
  "campus_id" int NOT NULL REFERENCES "soundgood_music_school",
  "staff_id"  int REFERENCES "adminstrative_staff" ON DELETE SET NULL,
  "price_id" int NOT NULL REFERENCES "pricing_scheme",
- "instructor_id" int NOT NULL REFERENCES "instructor"
+ "instructor_id" int NOT NULL REFERENCES "instructor",
+ "min_places" int NOT NULL,
+ "max_places" int NOT NULL
 );
 
-CREATE TABLE maximim_lesson_places (
- "max_number" int NOT NULL,
- "lesson_id" int NOT NULL REFERENCES "lesson" ON DELETE CASCADE,
- PRIMARY KEY ("max_number","lesson_id")
-);
-
-CREATE TABLE minimum_lesson_places (
- "min_number" int NOT NULL,
- "lesson_id" int NOT NULL REFERENCES "lesson" ON DELETE CASCADE,
- PRIMARY KEY ("min_number", "lesson_id")
-);
 
 CREATE TABLE student_lesson (
  "student_id" int NOT NULL REFERENCES "student" ON DELETE CASCADE,
