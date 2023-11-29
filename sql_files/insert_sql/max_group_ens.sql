@@ -1,0 +1,72 @@
+INSERT INTO maximim_lesson_places (lesson_id,max_number)
+VALUES
+  (41,43),
+  (42,27),
+  (43,50),
+  (44,35),
+  (45,26),
+  (46,49),
+  (47,44),
+  (48,44),
+  (49,35),
+  (50,31);
+INSERT INTO maximim_lesson_places (lesson_id,max_number)
+VALUES
+  (51,30),
+  (52,26),
+  (53,38),
+  (54,30),
+  (55,28),
+  (56,26),
+  (57,28),
+  (58,37),
+  (59,25),
+  (60,41);
+INSERT INTO maximim_lesson_places (lesson_id,max_number)
+VALUES
+  (61,46),
+  (62,43),
+  (63,42),
+  (64,42),
+  (65,34),
+  (66,48),
+  (67,47),
+  (68,40),
+  (69,36),
+  (70,35);
+INSERT INTO maximim_lesson_places (lesson_id,max_number)
+VALUES
+  (71,33),
+  (72,32),
+  (73,43),
+  (74,46),
+  (75,34),
+  (76,43),
+  (77,46),
+  (78,40),
+  (79,27),
+  (80,37);
+INSERT INTO maximim_lesson_places (lesson_id,max_number)
+VALUES
+  (81,34),
+  (82,30),
+  (83,27),
+  (84,29),
+  (85,49),
+  (86,36),
+  (87,25),
+  (88,46),
+  (89,48),
+  (90,36);
+INSERT INTO maximim_lesson_places (lesson_id,max_number)
+VALUES
+  (91,50),
+  (92,30),
+  (93,31),
+  (94,29),
+  (95,38),
+  (96,45),
+  (97,31),
+  (98,32),
+  (99,47),
+  (100,49);
