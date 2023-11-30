@@ -23,7 +23,7 @@ OPTIONS (user 'postgres', password 'xxxxxx');
 CREATE SCHEMA hist_schema;
 
 --Import the whole public schema with all tables from historical_db
-IMPORT FOREIGN SCHEMA public FROM SERVER historical_server INTO hist_schema;
+--IMPORT FOREIGN SCHEMA public FROM SERVER historical_server INTO hist_schema;
 
 -- Or As we chose : Import only the tables we need for the data we are looking after
 IMPORT FOREIGN SCHEMA public
@@ -57,34 +57,34 @@ INSERT INTO hist_schema.historical_lessons (
     student_email
 )
 SELECT
-    hsl.lesson_id,
-    lt.type AS lesson_type,
-    hel.genre AS lesson_genre,
-    CASE WHEN lt.type = 'Ensemble' THEN NULL ELSE MIN(his.instrument_name) END AS instrument_name,
-    hps.price AS lesson_price,
-    CONCAT(hp.first_name, ' ', hp.last_name) AS student_name,
+    student_lesson.lesson_id,
+    lesson_type.type AS lesson_type,
+    ensemble_lesson.genre AS lesson_genre,
+    CASE WHEN lesson_type.type = 'Ensemble' THEN NULL ELSE MIN(instrument_stock.instrument_name) END AS instrument_name,
+    price.price AS lesson_price,
+    CONCAT(person.first_name, ' ', person.last_name) AS student_name,
     e.email AS student_email
 FROM
-    hist_schema.student_lesson hsl
+    hist_schema.student_lesson student_lesson
 LEFT JOIN
-    hist_schema.ensemble_lesson hel ON hsl.lesson_id = hel.lesson_id
+    hist_schema.ensemble_lesson ensemble_lesson ON student_lesson.lesson_id = ensemble_lesson.lesson_id
 LEFT JOIN
-    hist_schema.person hp ON hsl.student_id = hp.person_id
+    hist_schema.person person ON student_lesson.student_id = person.person_id
 LEFT JOIN
-    hist_schema.lesson hl ON hsl.lesson_id = hl.lesson_id
+    hist_schema.lesson lesson ON student_lesson.lesson_id = lesson.lesson_id
 LEFT JOIN
-    hist_schema.pricing_scheme hps ON hl.price_id = hps.price_id
+    hist_schema.pricing_scheme price ON lesson.price_id = price.price_id
 LEFT JOIN
-    hist_schema.lesson_type lt ON hps.lessontype_id = lt.lessontype_id
+    hist_schema.lesson_type lesson_type ON price.lessontype_id = lesson_type.lessontype_id
 LEFT JOIN
-    hist_schema.email e ON hp.person_id = e.person_id
+    hist_schema.email e ON person.person_id = e.person_id
 LEFT JOIN
-    hist_schema.instrument_type it ON hsl.lesson_id = it.lesson_id
+    hist_schema.instrument_type instrument_type ON student_lesson.lesson_id = instrument_type.lesson_id
 LEFT JOIN
-    hist_schema.instrument ist ON it.instrument_id = ist.instrument_id
+    hist_schema.instrument instrument ON instrument_type.instrument_id = instrument.instrument_id
 LEFT JOIN
-    hist_schema.instrument_stock his ON ist.stock_id = his.stock_id
+    hist_schema.instrument_stock instrument_stock ON instrument.stock_id = instrument_stock.stock_id
 GROUP BY
-    hsl.lesson_id, lt.type, hel.genre, hp.first_name, hp.last_name, e.email, hps.price
+    student_lesson.lesson_id, lesson_type.type, ensemble_lesson.genre, person.first_name, person.last_name, e.email, price.price
 ORDER BY
     student_name;
