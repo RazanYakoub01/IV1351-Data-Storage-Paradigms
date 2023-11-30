@@ -1,3 +1,5 @@
+BEGIN; -- Start of the transaction
+
 INSERT INTO school_rules (rule_id,rule_description,rule_value,valid_start,valid_end)
 VALUES
   (1,'Rule: Maximum renting period for an instrument',12,'2023-09-21',NULL),
@@ -2563,70 +2565,6 @@ VALUES
   (120,2),
   (120,29);
 
-  INSERT INTO ensemble_lesson (genre,lesson_id)
-VALUES
-  ('jaz',71),
-  ('pop',72),
-  ('pop',73),
-  ('pop',74),
-  ('rock',75),
-  ('pop',76),
-  ('choir',77),
-  ('brass',78),
-  ('pop',79),
-  ('brass',80);
-INSERT INTO ensemble_lesson (genre,lesson_id)
-VALUES
-  ('pop',81),
-  ('jaz',82),
-  ('pop',83),
-  ('brass',84),
-  ('orchestra',85),
-  ('rock',86),
-  ('choir',87),
-  ('pop',88),
-  ('brass',89),
-  ('rock',90);
-INSERT INTO ensemble_lesson (genre,lesson_id)
-VALUES
-  ('orchestra',91),
-  ('orchestra',92),
-  ('brass',93),
-  ('jaz',94),
-  ('rock',95),
-  ('orchestra',96),
-  ('pop',97),
-  ('jaz',98),
-  ('orchestra',99),
-  ('pop',100);
-
-  INSERT INTO ensemble_lesson (genre,lesson_id)
-VALUES
-  ('orchestra',101),
-  ('orchestra',102),
-  ('brass',103),
-  ('jaz',104),
-  ('rock',105),
-  ('orchestra',106),
-  ('pop',107),
-  ('jaz',108),
-  ('orchestra',109),
-  ('pop',110);
-
-  INSERT INTO ensemble_lesson (genre,lesson_id)
-VALUES
-  ('orchestra',111),
-  ('orchestra',112),
-  ('brass',113),
-  ('jaz',114),
-  ('rock',115),
-  ('orchestra',116),
-  ('pop',117),
-  ('jaz',118),
-  ('orchestra',119),
-  ('pop',120);
-
-
 INSERT INTO instrument_type (instrument_id,lesson_id)
 VALUES
   ('11',71),
@@ -2638,10 +2576,9 @@ VALUES
   ('21',77),
   ('17',78),
   ('12',79),
-  ('23',80);
+  ('2',80);
 INSERT INTO instrument_type (instrument_id,lesson_id)
 VALUES
-  ('9',81),
   ('2',82),
   ('24',83),
   ('9',84),
@@ -2702,7 +2639,6 @@ VALUES
 INSERT INTO instrument_type (instrument_id,lesson_id)
 VALUES
   ('2',71),
-  ('23',72),
   ('18',73),
   ('15',74),
   ('20',75),
@@ -2760,7 +2696,7 @@ VALUES
   ('3',103),
   ('4',104),
   ('16',105),
-  ('14',106),
+  ('20',106),
   ('11',107),
   ('7',108),
   ('2',109),
@@ -2800,7 +2736,7 @@ VALUES
   ('3',113),
   ('4',114),
   ('16',115),
-  ('14',116),
+  ('20',116),
   ('11',117),
   ('7',118),
   ('2',119),
@@ -2818,3 +2754,6 @@ VALUES
   ('18',118),
   ('15',119),
   ('1',120);
+
+
+COMMIT; -- End of the transaction
