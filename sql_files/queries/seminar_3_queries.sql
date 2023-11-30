@@ -111,7 +111,7 @@ SELECT
     el.genre, 
     l.date, 
     CASE 
-        WHEN COUNT(sl.student_id) = l.max_places THEN 'Full Booked' 
+        WHEN COUNT(sl.student_id) >= l.max_places THEN 'Full Booked' 
         WHEN COUNT(sl.student_id) >= l.max_places - 2 THEN '1-2 Seats Left' 
         ELSE 'More Seats Left' 
     END AS seats_status 
