@@ -1,5 +1,11 @@
 /*First create the historical database and then run the following commands in it*/
 
+--Create the database
+CREATE DATABASE historical_db;
+
+--Move to the database 
+\c historical_db;
+
 --Install postgres_fdw
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 
@@ -16,7 +22,7 @@ OPTIONS (user 'postgres', password 'xxxxxx');
 --Create local schema that will be used for the remote mapping
 CREATE SCHEMA hist_schema;
 
---Import the whole public schema from historical_db
+--Import the whole public schema with all tables from historical_db
 IMPORT FOREIGN SCHEMA public FROM SERVER historical_server INTO hist_schema;
 
 -- Or As we chose : Import only the tables we need for the data we are looking after
