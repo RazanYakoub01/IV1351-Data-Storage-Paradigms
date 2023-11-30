@@ -30,6 +30,7 @@ CREATE FOREIGN TABLE historical_student_lesson (
 SERVER historical_server
 OPTIONS (schema_name 'public', table_name 'student_lesson');
 
+
 CREATE FOREIGN TABLE historical_lesson (
     lesson_id INT PRIMARY KEY,
     classroom_number VARCHAR(50),
@@ -84,6 +85,7 @@ CREATE FOREIGN TABLE historical_lesson_type (
 SERVER historical_server
 OPTIONS (schema_name 'public', table_name 'lesson_type');
 
+
 CREATE FOREIGN TABLE historical_ensemble_lesson (
     lesson_id INT,
     genre VARCHAR(10)
@@ -110,7 +112,6 @@ CREATE FOREIGN TABLE historical_instrument_stock (
 )
 SERVER historical_server
 OPTIONS (schema_name 'public', table_name 'instrument_stock');
-
 
 
 CREATE FOREIGN TABLE historical_student_lesson (
@@ -142,7 +143,6 @@ CREATE TABLE historical_lessons (
 );
 
 
-
 INSERT INTO historical_lessons (
     lesson_id,
     lesson_type,
@@ -156,8 +156,8 @@ SELECT
     hsl.lesson_id,
     lt.type AS lesson_type,
     hel.genre AS lesson_genre,
-	CASE WHEN lt.type = 'Ensemble' THEN NULL ELSE MIN(his.instrument_name) END AS instrument_name,
-	hps.price AS lesson_price,
+    CASE WHEN lt.type = 'Ensemble' THEN NULL ELSE MIN(his.instrument_name) END AS instrument_name,
+    hps.price AS lesson_price,
     CONCAT(hp.first_name, ' ', hp.last_name) AS student_name,
     e.email AS student_email
 FROM
@@ -181,4 +181,6 @@ LEFT JOIN
 LEFT JOIN
     historical_instrument_stock his ON ist.stock_id = his.stock_id
 GROUP BY
-    hsl.lesson_id, lt.type, hel.genre, hp.first_name, hp.last_name, e.email, hps.price;
+    hsl.lesson_id, lt.type, hel.genre, hp.first_name, hp.last_name, e.email, hps.price
+ORDER BY
+    student_name;
