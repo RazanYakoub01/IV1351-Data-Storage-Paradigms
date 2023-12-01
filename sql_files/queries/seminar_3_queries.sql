@@ -100,7 +100,7 @@ SELECT
 FROM
     instructor_lessons_per_month
 WHERE 
-    lesson_month = 12 --EXTRACT(MONTH FROM CURRENT_DATE)
+    lesson_month = EXTRACT(MONTH FROM CURRENT_DATE)
     AND lesson_year = EXTRACT(YEAR FROM CURRENT_DATE)
     AND number_of_lessons > 3
 ORDER BY
