@@ -111,8 +111,8 @@ SELECT * FROM hist_schema.student_lesson;
 
 
 /* Query to select report for a student using the student name */
-
-SELECT hl.lesson_id,hl.lesson_type,hl.genre,hl.instrument,hl.lesson_price,hs.student_id,hs.student_name,hs.student_email
+SELECT hl.lesson_id,hl.lesson_type,hl.genre,hl.instrument,hl.lesson_price,
+hs.student_id,hs.student_name,hs.student_email
 FROM hist_schema.historical_student_lesson sl
 JOIN hist_schema.historical_students hs ON sl.student_id = hs.student_id
 JOIN hist_schema.historical_lessons hl ON sl.lesson_id = hl.lesson_id
