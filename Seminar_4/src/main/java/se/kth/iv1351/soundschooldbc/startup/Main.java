@@ -13,6 +13,8 @@ import  main.java.se.kth.iv1351.soundschooldbc.integration.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import java.util.Scanner;
+
 public class Main {
     public static void main(String[] args) {
         try {
@@ -26,6 +28,18 @@ public class Main {
         
        SchoolDAO.retrieveSchoolRule();
        SchoolDAO.listInstrument("Drums");
+       
+       
+       Scanner scanner = new Scanner(System.in);
+
+       System.out.println("Enter the instrument name to search:");
+       String instrumentName = scanner.nextLine(); // Read user input
+
+       // Call the listInstrument function with the provided instrument name
+       SchoolDAO.listInstrument(instrumentName);
+
+       scanner.close();
+
     }
 
 
