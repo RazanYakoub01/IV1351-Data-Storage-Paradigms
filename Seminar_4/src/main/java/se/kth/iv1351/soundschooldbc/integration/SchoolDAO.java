@@ -49,8 +49,6 @@ public class SchoolDAO {
 	
 	public static void listInstrument(String instrumentType) {
 	    try {
-	        // Establish connection (replace with your connection details)
-	        Connection connection = connect();
 
 	        // SQL query to retrieve available instruments of a certain type
 	        String query = "SELECT i.instrument_id, s.instrument_name, s.brand, s.renting_price " +
@@ -59,6 +57,7 @@ public class SchoolDAO {
 	                       "WHERE s.instrument_name = '" + instrumentType + "' AND CAST(s.availability_stock AS INTEGER) > 0";
 
 	        // Create a prepared statement with a parameter
+	        Connection connection = connect();
 	        Statement statement = connection.createStatement();
 	        ResultSet resultSet = statement.executeQuery(query);
 
