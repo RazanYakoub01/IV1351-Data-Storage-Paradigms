@@ -16,7 +16,7 @@ public class SchoolDAO {
 	public static Connection connect() throws SQLException {
         String url = "jdbc:postgresql://localhost:5432/soundgood_music_school"; // Update with your database name
         String username = "postgres";
-        String password = "palestine710";
+        String password = "seemaärbäst";
 
         Connection connection = DriverManager.getConnection(url, username, password);
         return connection;
