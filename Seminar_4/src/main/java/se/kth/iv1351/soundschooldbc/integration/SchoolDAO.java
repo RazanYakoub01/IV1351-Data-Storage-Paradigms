@@ -1,7 +1,5 @@
-/**
- * 
- */
 package main.java.se.kth.iv1351.soundschooldbc.integration;
+
 
 /**
  * @author Razan Yakoub , Seema Bashir , Teoman Köylüoglu
@@ -16,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class SchoolDAO {
+	
 	public static Connection connect() throws SQLException {
         String url = "jdbc:postgresql://localhost:5432/soundgood_music_school"; // Update with your database name
         String username = "postgres";
@@ -61,7 +60,7 @@ public class SchoolDAO {
 	}
 
 
-	public static int retrieveMaxInstrumentRule() {
+	private static int retrieveMaxInstrumentRule() {
 	    String query = "SELECT rule_value FROM school_rules WHERE rule_description LIKE '%Maximum number of instruments allowed for rental%'";
 
 	    try {
@@ -86,6 +85,56 @@ public class SchoolDAO {
 	    }
 	}
 	
+	
+	private static int retrieveMaxRentingPeriod() throws SQLException {
+	    Connection connection = connect();
+	    Statement statement = connection.createStatement();
+	    ResultSet resultSet = statement.executeQuery("SELECT rule_value FROM school_rules WHERE rule_description LIKE '%Maximum renting period%'");
+
+	    int maxRentingPeriod = 0;
+	    if (resultSet.next()) {
+	        maxRentingPeriod = resultSet.getInt("rule_value");
+	    }
+
+	    // Close resources
+	    resultSet.close();
+	    statement.close();
+	    connection.close();
+
+	    return maxRentingPeriod;
+	}
+
+	
+	private static boolean isDateWithinRange(String dateTo, int maxRentingPeriod) {
+	    try {
+	        Connection connection = connect();
+
+	        // Calculate the maximum allowed date in SQL
+	        String query = "SELECT CURRENT_DATE + INTERVAL '" + maxRentingPeriod + "' MONTH";
+	        Statement statement = connection.createStatement();
+	        ResultSet resultSet = statement.executeQuery(query);
+
+	        // Get the maximum allowed date from the SQL result
+	        if (resultSet.next()) {
+	            java.sql.Date maxAllowedDate = resultSet.getDate(1);
+
+	            // Parse the input date string to Date
+	            java.sql.Date toDate = java.sql.Date.valueOf(dateTo);
+
+	            // Check if toDate is within the allowed range
+	            return !toDate.after(maxAllowedDate);
+	        }
+
+	        resultSet.close();
+	        statement.close();
+	        connection.close();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return false; // Error occurred or no result, default to false
+	}
+
 	
 	public static void listInstrument(String instrumentType) {
 	    try {
@@ -218,7 +267,7 @@ public class SchoolDAO {
 
 	
 	public static void rentInstrument(int studentId, int instrumentId, String dateTo) {
-		try {
+	    try {
 	        // Establish connection (replace with your connection details)
 	        Connection connection = connect();
 
@@ -232,6 +281,15 @@ public class SchoolDAO {
 	        if (rentedInstruments >= maxInstruments) {
 	            System.out.println("You have already rented the maximum number of instruments allowed.");
 	            return; // Exit method if the limit is reached
+	        }
+
+	        // Retrieve the maximum renting period from school rules
+	        int maxRentingPeriod = retrieveMaxRentingPeriod();
+
+	        // Check if the dateTo is within the allowed range (maxRentingPeriod from the current date)
+	        if (!isDateWithinRange(dateTo, maxRentingPeriod)) {
+	            System.out.println("Maximum renting period exceeded. Please select a date within the allowed range.");
+	            return; // Exit method if the date exceeds the maximum range
 	        }
 
 	        // Proceed with renting the instrument
@@ -254,10 +312,6 @@ public class SchoolDAO {
 	        System.out.println("Failed to rent instrument.");
 	    }
 	}
-
-
-
-
 
 }
 
