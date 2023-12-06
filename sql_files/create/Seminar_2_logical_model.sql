@@ -102,13 +102,13 @@ CREATE TABLE pricing_scheme (
 );
 
 CREATE TABLE renting_period (
-    "rule_id" int GENERATED ALWAYS AS IDENTITY NOT NULL,
+    "rental_id" int GENERATED ALWAYS AS IDENTITY NOT NULL,
     "student_id" int NOT NULL REFERENCES "student",
     "date_from" DATE NOT NULL,
     "date_to" DATE NOT NULL,
     "instrument_id" int NOT NULL REFERENCES "instrument",
     "status" VARCHAR(20) NOT NULL DEFAULT 'Active', -- Added comma and removed semicolon
-    PRIMARY KEY("rule_id","student_id")
+    PRIMARY KEY("rental_id","student_id")
 );
 
 CREATE TABLE sibling_student (
