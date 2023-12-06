@@ -9,6 +9,7 @@ package main.java.se.kth.iv1351.soundschooldbc.startup;
  */
 import  main.java.se.kth.iv1351.soundschooldbc.integration.*;
 
+
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -22,6 +23,9 @@ public class Main {
             System.out.println("Connection failed.");
             e.printStackTrace();
         }
+        
+       SchoolDAO.retrieveSchoolRule();
+       SchoolDAO.listInstrument("Drums");
     }
 
 
