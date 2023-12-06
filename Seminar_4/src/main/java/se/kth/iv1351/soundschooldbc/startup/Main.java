@@ -28,9 +28,9 @@ public class Main {
         
        SchoolDAO.retrieveSchoolRule();
        SchoolDAO.listInstrument("Drums");
+       SchoolDAO.terminateRental(3, 16);
        
-       
-       Scanner scanner = new Scanner(System.in);
+      /* scanner = new Scanner(System.in);
 
        System.out.println("Enter the instrument name to search:");
        String instrumentName = scanner.nextLine(); // Read user input
@@ -39,7 +39,7 @@ public class Main {
        SchoolDAO.listInstrument(instrumentName);
 
        scanner.close();
-
+*/
     }
 
 

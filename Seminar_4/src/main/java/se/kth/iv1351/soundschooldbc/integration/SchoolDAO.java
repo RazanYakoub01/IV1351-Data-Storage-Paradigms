@@ -84,7 +84,69 @@ public class SchoolDAO {
 	    }
 	}
 
+	public static void terminateRental(int studentID, int instrumentID) {
+	    try {
+	        // Establish connection (replace with your connection details)
+	        Connection connection = connect();
+
+	        // SQL query to terminate a rental and fetch rental details
+	        String updateQuery = "UPDATE renting_period " +
+	                             "SET status = 'Terminated' " +
+	                             "WHERE student_id = " + studentID +
+	                             " AND instrument_id = " + instrumentID +
+	                             " AND status = 'Active'";
+
+	        // Create a statement
+	        Statement statement = connection.createStatement();
+
+	        // Execute the update
+	        int rowsAffected = statement.executeUpdate(updateQuery);
+
+	        // Display the result
+	        if (rowsAffected > 0) {
+	            // Retrieve details of the terminated rental
+	            String rentalDetailsQuery = "SELECT * FROM renting_period " +
+	                                        "WHERE student_id = " + studentID +
+	                                        " AND instrument_id = " + instrumentID +
+	                                        " AND status = 'Terminated'";
+	            
+	            ResultSet rentalDetailsResult = statement.executeQuery(rentalDetailsQuery);
+
+	            // Process the rental details
+	            while (rentalDetailsResult.next()) {
+	                int instrumentId = rentalDetailsResult.getInt("instrument_id");
+	                String dateFrom = rentalDetailsResult.getString("date_from");
+	                String dateTo = rentalDetailsResult.getString("date_to");
+	                String status = rentalDetailsResult.getString("status");
+
+	                // Display terminated rental details
+	                System.out.println("Terminated Rental Details - " +
+	                                   "Instrument ID: " + instrumentId +
+	                                   ", Date From: " + dateFrom +
+	                                   ", Date To: " + dateTo +
+	                                   ", Status: " + status);
+	            }
+
+	            rentalDetailsResult.close();
+	            System.out.println("Rental terminated successfully.");
+	        } else {
+	            System.out.println("No active rental found for the specified student and instrument.");
+	        }
+
+	        // Close resources
+	        statement.close();
+	        connection.close();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.out.println("Failed to terminate rental.");
+	    }
+	}
+
 
 
 
 }
+
+
+
+
