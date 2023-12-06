@@ -24,27 +24,67 @@ public class SchoolDAO {
         Connection connection = DriverManager.getConnection(url, username, password);
         return connection;
     }
-	
-	public static void retrieveSchoolRule() {
-        String query = "SELECT * FROM school_rules"; // Your SQL query to retrieve data
 
-        try {
-        		Connection connection = connect();
-        		Statement statement = connection.createStatement();
-        		ResultSet resultSet = statement.executeQuery(query);
-        		while (resultSet.next()) {
-	            	int lessonId = resultSet.getInt("rule_value");
-	            	String lessonName = resultSet.getString("rule_description");
-	            	System.out.println("Rule Value: " + lessonId + ", Rule Description: " + lessonName);
-            	}
-    	        // Close resources
-    	        resultSet.close();
-    	        statement.close();
-    	        connection.close();
+	
+	public static void checkRental() {
+		try {
+            Connection conn = connect();
+            Statement statement = conn.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM renting_period");
+
+            // Get current date
+            java.util.Date currentDate = new java.util.Date();
+            java.sql.Date sqlDate = new java.sql.Date(currentDate.getTime());
+
+            while (resultSet.next()) {
+                java.sql.Date dateTo = resultSet.getDate("date_to");
+                int rentalId = resultSet.getInt("rental_id");
+
+                // Compare date_to with current date
+                if (dateTo != null && dateTo.before(sqlDate)) {
+                    // Execute update query to change status to 'Terminated'
+                    PreparedStatement updateStatement = conn.prepareStatement(
+                            "UPDATE renting_period SET status = 'Terminated' WHERE rental_id = ?");
+                    updateStatement.setInt(1, rentalId);
+                    updateStatement.executeUpdate();
+                    updateStatement.close();
+                }
+            }
+
+            // Close resources
+            resultSet.close();
+            statement.close();
+            conn.close();
         } catch (SQLException e) {
-            System.out.println("Failed to retrieve lesson data.");
+            e.printStackTrace();
         }
-    }
+	}
+
+
+	public static int retrieveMaxInstrumentRule() {
+	    String query = "SELECT rule_value FROM school_rules WHERE rule_description LIKE '%Maximum number of instruments allowed for rental%'";
+
+	    try {
+	        Connection connection = connect();
+	        Statement statement = connection.createStatement();
+	        ResultSet resultSet = statement.executeQuery(query);
+	        
+	        int maxInstruments = 0;
+	        if (resultSet.next()) {
+	            maxInstruments = resultSet.getInt("rule_value");
+	        }
+
+	        // Close resources
+	        resultSet.close();
+	        statement.close();
+	        connection.close();
+
+	        return maxInstruments;
+	    } catch (SQLException e) {
+	        System.out.println("Failed to retrieve maximum instrument rule.");
+	        return 0;
+	    }
+	}
 	
 	
 	public static void listInstrument(String instrumentType) {
@@ -61,20 +101,24 @@ public class SchoolDAO {
 	        Statement statement = connection.createStatement();
 	        ResultSet resultSet = statement.executeQuery(query);
 
-	        // Process the results
-	        while (resultSet.next()) {
-	            int instrumentId = resultSet.getInt("instrument_id");
-	            String instrumentName = resultSet.getString("instrument_name");
-	            String brand = resultSet.getString("brand");
-	            int rentingPrice = resultSet.getInt("renting_price");
+	        // Check if there are available instruments
+	        if (!resultSet.next()) {
+	            System.out.println("No available instruments of type: " + instrumentType);
+	        } else {
+	            // Display available instruments
+	            do {
+	                int instrumentId = resultSet.getInt("instrument_id");
+	                String instrumentName = resultSet.getString("instrument_name");
+	                String brand = resultSet.getString("brand");
+	                int rentingPrice = resultSet.getInt("renting_price");
 
-	            // Display instrument details
-	            System.out.println("Instrument ID: " + instrumentId +
-	                               ", Name: " + instrumentName +
-	                               ", Brand: " + brand +
-	                               ", Renting Price: " + rentingPrice);
+	                // Display instrument details
+	                System.out.println("Instrument ID: " + instrumentId +
+	                                   ", Name: " + instrumentName +
+	                                   ", Brand: " + brand +
+	                                   ", Renting Price: " + rentingPrice);
+	            } while (resultSet.next());
 	        }
-
 	        // Close resources
 	        resultSet.close();
 	        statement.close();
@@ -83,57 +127,27 @@ public class SchoolDAO {
 	        e.printStackTrace();
 	    }
 	}
-
-	public static void terminateRental(int studentID, int instrumentID) {
+	
+	
+	public static void terminateRental(int studentID, int rentalID) {
 	    try {
-	        // Establish connection (replace with your connection details)
 	        Connection connection = connect();
 
-	        // SQL query to terminate a rental and fetch rental details
 	        String updateQuery = "UPDATE renting_period " +
-	                             "SET status = 'Terminated' " +
-	                             "WHERE student_id = " + studentID +
-	                             " AND instrument_id = " + instrumentID +
-	                             " AND status = 'Active'";
+	                "SET status = 'Terminated' " +
+	                "WHERE student_id = " + studentID +
+	                " AND rental_id = " + rentalID +
+	                " AND status = 'Active'";
 
-	        // Create a statement
 	        Statement statement = connection.createStatement();
-
-	        // Execute the update
 	        int rowsAffected = statement.executeUpdate(updateQuery);
 
-	        // Display the result
 	        if (rowsAffected > 0) {
-	            // Retrieve details of the terminated rental
-	            String rentalDetailsQuery = "SELECT * FROM renting_period " +
-	                                        "WHERE student_id = " + studentID +
-	                                        " AND instrument_id = " + instrumentID +
-	                                        " AND status = 'Terminated'";
-	            
-	            ResultSet rentalDetailsResult = statement.executeQuery(rentalDetailsQuery);
-
-	            // Process the rental details
-	            while (rentalDetailsResult.next()) {
-	                int instrumentId = rentalDetailsResult.getInt("instrument_id");
-	                String dateFrom = rentalDetailsResult.getString("date_from");
-	                String dateTo = rentalDetailsResult.getString("date_to");
-	                String status = rentalDetailsResult.getString("status");
-
-	                // Display terminated rental details
-	                System.out.println("Terminated Rental Details - " +
-	                                   "Instrument ID: " + instrumentId +
-	                                   ", Date From: " + dateFrom +
-	                                   ", Date To: " + dateTo +
-	                                   ", Status: " + status);
-	            }
-
-	            rentalDetailsResult.close();
 	            System.out.println("Rental terminated successfully.");
 	        } else {
-	            System.out.println("No active rental found for the specified student and instrument.");
+	            System.out.println("Failed to terminate rental.");
 	        }
 
-	        // Close resources
 	        statement.close();
 	        connection.close();
 	    } catch (SQLException e) {
@@ -141,6 +155,106 @@ public class SchoolDAO {
 	        System.out.println("Failed to terminate rental.");
 	    }
 	}
+	
+	
+	public static void showActiveRentals(int studentID) {
+	    try {
+	        Connection connection = connect();
+
+	        String fetchQuery = "SELECT * FROM renting_period " +
+	                            "WHERE student_id = " + studentID +
+	                            " AND status = 'Active'";
+	        
+	        Statement statement = connection.createStatement();
+	        ResultSet activeRentals = statement.executeQuery(fetchQuery);
+
+	        System.out.println("Active Rentals for Student ID: " + studentID);
+	        int count = 0;
+	        while (activeRentals.next()) {
+	            int rentalId = activeRentals.getInt("rental_id");
+	            int instrumentId = activeRentals.getInt("instrument_id");
+	            String dateFrom = activeRentals.getString("date_from");
+	            String dateTo = activeRentals.getString("date_to");
+
+	            System.out.println(count + ". Instrument ID: " + instrumentId +
+	                               ", Rental Nr: " + rentalId +
+	                               ", Date From: " + dateFrom +
+	                               ", Date To: " + dateTo);
+	        }
+	        activeRentals.close();
+	        statement.close();
+	        connection.close();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.out.println("Failed to retrieve active rentals.");
+	    }
+	}
+	
+	
+	public static int countActiveRentals(int studentId) {
+	    int rentedInstruments = 0;
+	    try {
+	        Connection connection = connect();
+	        String countQuery = "SELECT COUNT(*) FROM renting_period " +
+	                            "WHERE student_id = ? AND status = 'Active'";
+	        PreparedStatement countStatement = connection.prepareStatement(countQuery);
+	        countStatement.setInt(1, studentId);
+	        ResultSet countResult = countStatement.executeQuery();
+
+	        if (countResult.next()) {
+	            rentedInstruments = countResult.getInt(1);
+	        }
+
+	        // Close resources
+	        countResult.close();
+	        countStatement.close();
+	        connection.close();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.out.println("Failed to count active rentals.");
+	    }
+	    return rentedInstruments;
+	}
+
+	
+	public static void rentInstrument(int studentId, int instrumentId, String dateTo) {
+		try {
+	        // Establish connection (replace with your connection details)
+	        Connection connection = connect();
+
+	        // Retrieve the maximum number of instruments allowed for rental
+	        int maxInstruments = retrieveMaxInstrumentRule();
+
+	        // Check the number of instruments already rented by the student
+	        int rentedInstruments = countActiveRentals(studentId);
+
+	        // Check if the student has already rented the maximum number of instruments
+	        if (rentedInstruments >= maxInstruments) {
+	            System.out.println("You have already rented the maximum number of instruments allowed.");
+	            return; // Exit method if the limit is reached
+	        }
+
+	        // Proceed with renting the instrument
+	        String rentQuery = "INSERT INTO renting_period (student_id, date_from, date_to, instrument_id) " +
+	                           "VALUES (" + studentId + ", CURRENT_DATE, DATE '" + dateTo + "', " + instrumentId + ")";
+	        Statement rentStatement = connection.createStatement();
+	        int rowsAffected = rentStatement.executeUpdate(rentQuery);
+
+	        if (rowsAffected > 0) {
+	            System.out.println("Instrument rented successfully.");
+	        } else {
+	            System.out.println("Failed to rent the instrument.");
+	        }
+
+	        // Close resources
+	        rentStatement.close();
+	        connection.close();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.out.println("Failed to rent instrument.");
+	    }
+	}
+
 
 
 
