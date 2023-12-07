@@ -56,8 +56,35 @@ public class SchoolDAO {
             statement.close();
             conn.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+           handleException("Failed to check rental", e);
         }
+	}
+
+	
+	public static void handleException(String failureMsg, SQLException e) {
+	    e.printStackTrace();
+	    System.out.println(failureMsg);
+
+	    // Rollback the transaction if an error occurs
+	    Connection connection = null;
+	    try {
+	        // Obtain a new connection for the rollback
+	        connection = connect();
+	        if (connection != null) {
+	            connection.rollback();
+	        }
+	    } catch (SQLException rollbackException) {
+	        rollbackException.printStackTrace();
+	    } finally {
+	        try {
+	            // Close the connection used for rollback
+	            if (connection != null) {
+	                connection.close();
+	            }
+	        } catch (SQLException closeException) {
+	            closeException.printStackTrace();
+	        }
+	    }
 	}
 
 
@@ -81,7 +108,7 @@ public class SchoolDAO {
 
 	        return maxInstruments;
 	    } catch (SQLException e) {
-	        System.out.println("Failed to retrieve maximum instrument rule.");
+	           handleException("Failed to retrieve maximum instrument rule", e);
 	        return 0;
 	    }
 	}
@@ -130,7 +157,7 @@ public class SchoolDAO {
 	        statement.close();
 	        connection.close();
 	    } catch (SQLException e) {
-	        e.printStackTrace();
+	       handleException("Failed to retrieve data within range", e);
 	    }
 
 	    return false; // Error occurred or no result, default to false
@@ -174,7 +201,7 @@ public class SchoolDAO {
 	        statement.close();
 	        connection.close();
 	    } catch (SQLException e) {
-	        e.printStackTrace();
+	           handleException("Failed to retrieve maximum instrument rule", e);
 	    }
 	}
 	
