@@ -21,6 +21,7 @@ public class SchoolDAO {
         String password = "seemaärbäst";
 
         Connection connection = DriverManager.getConnection(url, username, password);
+        connection.setAutoCommit(false);
         return connection;
     }
 
@@ -268,9 +269,7 @@ public class SchoolDAO {
 	
 	public static void rentInstrument(int studentId, int instrumentId, String dateTo) {
 	    try {
-	        // Establish connection (replace with your connection details)
-	        Connection connection = connect();
-
+	        Connection connection = connect(); 
 	        // Retrieve the maximum number of instruments allowed for rental
 	        int maxInstruments = retrieveMaxInstrumentRule();
 

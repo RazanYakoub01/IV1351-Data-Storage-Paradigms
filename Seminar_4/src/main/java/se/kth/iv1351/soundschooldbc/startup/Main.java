@@ -17,14 +17,13 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        try {
+        /*try {
             Connection conn = SchoolDAO.connect();
             System.out.println("Connected to the database!");
-            // You can use 'conn' to perform database operations
         } catch (SQLException e) {
             System.out.println("Connection failed.");
             e.printStackTrace();
-        }
+        }*/
         
         Scanner scanner = new Scanner(System.in);
 
