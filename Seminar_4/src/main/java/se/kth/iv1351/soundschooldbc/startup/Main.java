@@ -28,6 +28,8 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Welcome to SoundGood Music School!");
+       
+        
 
         while (true) {
             System.out.println("Select an option:");

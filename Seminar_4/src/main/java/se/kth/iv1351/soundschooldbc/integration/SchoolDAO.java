@@ -24,7 +24,7 @@ public class SchoolDAO {
         connection.setAutoCommit(false);
         return connection;
     }
-
+	
 	
 	public static void checkRental() {
 		try {
@@ -62,7 +62,6 @@ public class SchoolDAO {
 
 	
 	public static void handleException(String failureMsg, SQLException e) {
-	    e.printStackTrace();
 	    System.out.println(failureMsg);
 
 	    // Rollback the transaction if an error occurs
@@ -201,7 +200,7 @@ public class SchoolDAO {
 	        statement.close();
 	        connection.close();
 	    } catch (SQLException e) {
-	           handleException("Failed to retrieve maximum instrument rule", e);
+	           handleException("Failed to retrieve available instruments", e);
 	    }
 	}
 	
@@ -335,7 +334,7 @@ public class SchoolDAO {
 	        connection.close();
 	    } catch (SQLException e) {
 	        e.printStackTrace();
-	        System.out.println("Failed to rent instrument.");
+	        handleException("Failed to rent instrument.",e);
 	    }
 	}
 
