@@ -36,7 +36,7 @@ public class SchoolDAO {
 
 	private Connection connection;
 	private PreparedStatement getAllRentalStmt;
-	private PrepareStatement updateRentalStatusStmt;
+	private PreparedStatement updateRentalStatusStmt;
 	private PreparedStatement getMaxAllowedInstrumentStmt;
 	private PreparedStatement getMaxRentingPeriodStmt;
 	private PreparedStatement getDateRangeStmt;
@@ -45,6 +45,8 @@ public class SchoolDAO {
 	private PreparedStatement showActiveRentalStmt;
 	private PreparedStatement countActiveRentalStmt;
 	private PreparedStatement rentInstrumentStmt;
+	private PreparedStatement incrementAvailableStockStmt;
+	private PreparedStatement decrementAvailableStockStmt;
 
 	private void preparedStatements() throws SQLException {
 		getAllRentalStmt = connection.prepareStatement("SELECT * FROM " + RENTING_TABLE_NAME);
@@ -70,6 +72,13 @@ public class SchoolDAO {
 		rentInstrumentStmt = connection.prepareStatement(
 				"INSERT INTO " + RENTING_TABLE_NAME + " (" + STUDENT_ID_NAME + "," + START_DATE_NAME + ","
 						+ END_DATE_NAME + "," + INSTRUMENT_ID_NAME + ")  VALUES ( ? , CURRENT_DATE, DATE '?', ? ");
+		incrementAvailableStockStmt = connection.prepareStatement("UPDATE " + STOCK_TABLE_NAME +
+					    " SET " + STOCK_AVAILABLITY_NAME + " = " + STOCK_AVAILABLITY_NAME + " + 1 " +
+					    " WHERE " + STOCK_ID_NAME + " = ?");
+		decrementAvailableStockStmt = connection.prepareStatement("UPDATE " + STOCK_TABLE_NAME +
+			    " SET " + STOCK_AVAILABLITY_NAME + " = " + STOCK_AVAILABLITY_NAME + " - 1 " +
+			    " WHERE " + STOCK_ID_NAME + " = ?");
+
 	}
 
 	public static Connection connect() throws SQLException {
@@ -82,6 +91,7 @@ public class SchoolDAO {
 		return connection;
 	}
 
+	//Fråga 3?
 	public static void checkRental() {
 		try {
 			Connection conn = connect();
@@ -141,6 +151,7 @@ public class SchoolDAO {
 		}
 	}
 
+	//Query 2
 	private static int retrieveMaxInstrumentRule() {
 		String query = "SELECT rule_value FROM school_rules WHERE rule_description LIKE '%Maximum number of instruments allowed for rental%'";
 
@@ -215,6 +226,7 @@ public class SchoolDAO {
 		return false; // Error occurred or no result, default to false
 	}
 
+	//Fråga 1
 	public static void listInstrument(String instrumentType) {
 		try {
 
@@ -256,6 +268,7 @@ public class SchoolDAO {
 		}
 	}
 
+	//Fråga 3
 	public static void terminateRental(int studentID, int rentalID) {
 		try {
 			Connection connection = connect();
@@ -278,8 +291,8 @@ public class SchoolDAO {
 			statement.close();
 			connection.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
-			System.out.println("Failed to terminate rental.");
+			handleException("Failed to terminate rental.", e);
+			
 		}
 	}
 
@@ -311,8 +324,8 @@ public class SchoolDAO {
 			statement.close();
 			connection.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
-			System.out.println("Failed to retrieve active rentals.");
+			handleException("Failed to retrieve active rentals.", e);
+			
 		}
 	}
 
@@ -335,8 +348,8 @@ public class SchoolDAO {
 			countStatement.close();
 			connection.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
-			System.out.println("Failed to count active rentals.");
+			handleException("Failed to count active rentals.",e);
+			
 		}
 		return rentedInstruments;
 	}
@@ -382,8 +395,8 @@ public class SchoolDAO {
 			rentStatement.close();
 			connection.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
 			handleException("Failed to rent instrument.", e);
+			
 		}
 	}
 
