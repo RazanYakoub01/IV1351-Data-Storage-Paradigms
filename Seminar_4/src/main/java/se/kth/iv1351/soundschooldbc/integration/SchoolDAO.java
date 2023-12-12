@@ -92,11 +92,11 @@ public class SchoolDAO {
 	}
 
 	//Fråga 3?
-	public static void checkRental() {
+	/*public static void checkRental() {
 		try {
 			Connection conn = connect();
 			Statement statement = conn.createStatement();
-			ResultSet resultSet = statement.executeQuery("SELECT * FROM renting_period");
+			ResultSet resultSet = statement.executeQuery("SELECT * FROM renting_period FOR UPDATE");
 
 			// Get current date
 			java.util.Date currentDate = new java.util.Date();
@@ -124,7 +124,7 @@ public class SchoolDAO {
 		} catch (SQLException e) {
 			handleException("Failed to check rental", e);
 		}
-	}
+	} */
 
 	public static void handleException(String failureMsg, SQLException e) {
 		System.out.println(failureMsg);
@@ -231,7 +231,7 @@ public class SchoolDAO {
 		try {
 
 			// SQL query to retrieve available instruments of a certain type
-			String query = "SELECT i.instrument_id, s.instrument_name, s.brand, s.renting_price " +
+			String query = "SELECT i.instrument_id, s.instrument_name, s.brand, s.renting_price, s.availability_stock " +
 					"FROM instrument i " +
 					"JOIN instrument_stock s ON i.stock_id = s.stock_id " +
 					"WHERE s.instrument_name = '" + instrumentType + "' AND CAST(s.availability_stock AS INTEGER) > 0";
@@ -251,12 +251,14 @@ public class SchoolDAO {
 					String instrumentName = resultSet.getString("instrument_name");
 					String brand = resultSet.getString("brand");
 					int rentingPrice = resultSet.getInt("renting_price");
+					String availableStock = resultSet.getString("availability_stock");
 
 					// Display instrument details
 					System.out.println("Instrument ID: " + instrumentId +
 							", Name: " + instrumentName +
 							", Brand: " + brand +
-							", Renting Price: " + rentingPrice);
+							", Renting Price: " + rentingPrice + 
+							", Available Stock: " + availableStock);
 				} while (resultSet.next());
 			}
 			// Close resources
@@ -274,7 +276,7 @@ public class SchoolDAO {
 			Connection connection = connect();
 
 			String updateQuery = "UPDATE renting_period " +
-					"SET status = 'Terminated' " +
+					"SET status = 'Terminated', date_to = CURRENT_DATE " +
 					"WHERE student_id = " + studentID +
 					" AND rental_id = " + rentalID +
 					" AND status = 'Active'";
@@ -354,6 +356,7 @@ public class SchoolDAO {
 		return rentedInstruments;
 	}
 
+	//Query 4
 	public static void rentInstrument(int studentId, int instrumentId, String dateTo) {
 		try {
 			Connection connection = connect();
