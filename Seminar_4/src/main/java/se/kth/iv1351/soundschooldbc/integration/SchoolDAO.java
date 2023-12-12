@@ -5,7 +5,6 @@ import main.java.se.kth.iv1351.soundschooldbc.utility.*;
 
 /**
  * @author Razan Yakoub , Seema Bashir , Teoman Köylüoglu
- *
  */
 
 import java.sql.Connection;
@@ -303,7 +302,5 @@ public class SchoolDAO {
 						+ END_DATE_NAME + "," + INSTRUMENT_ID_NAME + ")  VALUES ( ? , CURRENT_DATE, DATE '?', ? ");
 		updateInstrumentStmt = connection.prepareStatement("UPDATE " + STOCK_TABLE_NAME +
 				" SET " + STOCK_AVAILABLITY_NAME + " =  '?' WHERE " + STOCK_ID_NAME + " = ? ");
-
 	}
-
 }

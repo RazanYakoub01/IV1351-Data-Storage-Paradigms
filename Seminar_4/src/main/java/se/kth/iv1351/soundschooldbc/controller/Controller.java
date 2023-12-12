@@ -3,12 +3,7 @@
  */
 package main.java.se.kth.iv1351.soundschooldbc.controller;
 
-import java.sql.Date;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-
-import javax.security.auth.login.AccountException;
 
 import main.java.se.kth.iv1351.soundschooldbc.integration.SchoolDAO;
 import main.java.se.kth.iv1351.soundschooldbc.integration.SchoolDBException;
