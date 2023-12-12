@@ -1,16 +1,21 @@
 package main.java.se.kth.iv1351.soundschooldbc.integration;
 
+import main.java.se.kth.iv1351.soundschooldbc.model.*;
+import main.java.se.kth.iv1351.soundschooldbc.utility.*;
+
 /**
  * @author Razan Yakoub , Seema Bashir , Teoman Köylüoglu
  *
  */
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SchoolDAO {
 
@@ -35,47 +40,181 @@ public class SchoolDAO {
 	private static final String STUDENT_ID_NAME = "student_id";
 
 	private Connection connection;
-	private PreparedStatement getAllRentalStmt;
-	private PreparedStatement updateRentalStatusStmt;
 	private PreparedStatement getMaxAllowedInstrumentStmt;
 	private PreparedStatement getMaxRentingPeriodStmt;
-	private PreparedStatement getDateRangeStmt;
 	private PreparedStatement listAvailableInstrumentStmt;
 	private PreparedStatement terminateRentalStmt;
 	private PreparedStatement showActiveRentalStmt;
-	private PreparedStatement countActiveRentalStmt;
 	private PreparedStatement rentInstrumentStmt;
-	private PreparedStatement incrementAvailableStockStmt;
-	private PreparedStatement decrementAvailableStockStmt;
+	private PreparedStatement updateInstrumentStmt;
 
-		
-	
-    public SchoolDAO() throws SchoolDBException {
-    	try {
-            connectToSchoolDB();
-            preparedStatements();
-        } catch ( SQLException exception) {
-            throw new SchoolDBException("Could not connect to datasource.", exception);
-        }
-    }
-    
-    
-	//Query 2
+	public SchoolDAO() throws SchoolDBException {
+		try {
+			connectToSchoolDB();
+			preparedStatements();
+		} catch (SQLException exception) {
+			throw new SchoolDBException("Could not connect to datasource.", exception);
+		}
+	}
+
+	private void connectToSchoolDB() throws SQLException {
+		String url = "jdbc:postgresql://localhost:5432/soundgood_music_school";
+		String username = "postgres";
+		String password = "seemaärbäst";
+
+		connection = DriverManager.getConnection(url, username, password);
+		connection.setAutoCommit(false);
+	}
+
+	public void commit() throws SchoolDBException {
+		try {
+			connection.commit();
+		} catch (SQLException e) {
+			handleException("Failed to commit", e);
+		}
+	}
+
+	// Query 1
+	public List<Instrument> listInstrument(String instrumentType) throws SchoolDBException {
+		List<Instrument> instrumentList = new ArrayList<>();
+		String failureMsg = "Failed to retrieve available instruments of type: " + instrumentType;
+		ResultSet result = null;
+
+		try {
+			result = listAvailableInstrumentStmt.executeQuery();
+			while (result.next()) {
+				int instrumentId = result.getInt(INSTRUMENT_ID_NAME);
+				int stockId = result.getInt(STOCK_ID_NAME);
+				String instrumentName = result.getString(INSTRUMENT_NAME);
+				String brand = result.getString(INSTRUMENT_BRAND_NAME);
+				int rentingPrice = result.getInt(INSTRUMENT_RENTING_PRICE);
+				String availableStock = result.getString(STOCK_AVAILABLITY_NAME);
+
+				// Create an Instrument object and add it to the list
+				Instrument instrument = new Instrument(instrumentId, stockId, instrumentName, brand, rentingPrice,
+						availableStock);
+				instrumentList.add(instrument);
+			}
+			connection.commit();
+		} catch (SQLException e) {
+			handleException(failureMsg, e);
+		} finally {
+			closeResultSet(failureMsg, result);
+		}
+
+		return instrumentList;
+	}
+
+	// Query 2
+	public void rentInstrument(int instrumentId, int studentId, String dateTo) throws SchoolDBException {
+		String failureMsg = "Failed to rent instrument";
+		if (!checkRentalRules(studentId, dateTo)) {
+			return;
+		}
+		try {
+			rentInstrumentStmt.setInt(1, studentId);
+			rentInstrumentStmt.setString(2, dateTo);
+			rentInstrumentStmt.setInt(3, instrumentId);
+			int rowsAffected = rentInstrumentStmt.executeUpdate();
+			if (rowsAffected != 1) {
+				handleException(failureMsg, null);
+			}
+			connection.commit();
+		} catch (SQLException e) {
+			handleException(failureMsg, e);
+		}
+	}
+
+	/*
+	 * Används när man rentat ett instrument eller terminerat en rental.
+	 */
+	public void updateInstrumentStock(Instrument instrument) throws SchoolDBException {
+		String failureMsg = "Failed to update instrument Stock";
+		String newInstrumentStock = instrument.getInstrumentAvailableStock();
+		try {
+			updateInstrumentStmt.setString(1, newInstrumentStock);
+			updateInstrumentStmt.setInt(2, instrument.getStockID());
+			int rowsAffected = updateInstrumentStmt.executeUpdate();
+			if (rowsAffected != 1) {
+				handleException(failureMsg, null);
+			}
+			connection.commit();
+		} catch (SQLException e) {
+			handleException(failureMsg, e);
+		}
+	}
+
+	public List<Rental> getActiveRentals(int studentID) throws SchoolDBException {
+		String failureMsg = "Failed to retrieve active rentals";
+		ResultSet result = null;
+		List<Rental> activeRentals = new ArrayList<>();
+
+		try {
+			result = showActiveRentalStmt.executeQuery();
+
+			while (result.next()) {
+				int rentalId = result.getInt(RENTAL_ID_NAME);
+				int instrumentId = result.getInt(INSTRUMENT_ID_NAME);
+				Date dateFrom = result.getDate(START_DATE_NAME);
+				Date dateTo = result.getDate(END_DATE_NAME);
+				String rentalStatus = result.getString(RENTAL_STATUS_NAME);
+
+				Rental rental = new Rental(studentID, rentalId, instrumentId, dateFrom, dateTo, rentalStatus);
+				activeRentals.add(rental);
+			}
+
+		} catch (SQLException e) {
+			handleException("Failed to retrieve active rentals.", e);
+		} finally {
+			closeResultSet(failureMsg, result);
+		}
+
+		return activeRentals;
+	}
+
+	/**
+	 * @param studentID
+	 * @param rentalID
+	 * @throws SchoolDBException
+	 *                           Denna metod anropar på getRentalStatus som per
+	 *                           automatik terminerar en rental.
+	 *                           Denna metod terminerar då ett specifikt instrument
+	 *                           och fastställer den i databasen.
+	 */
+	public void updateRental(Rental rental) throws SchoolDBException {
+		String failureMsg = "Failed to terminate a rental";
+		try {
+			terminateRentalStmt.setString(1, rental.getRentalStatus());
+			terminateRentalStmt.setInt(2, rental.getStudentId());
+			terminateRentalStmt.setInt(3, rental.getRentalId());
+			int rowsAffected = terminateRentalStmt.executeUpdate();
+			if (rowsAffected != 1) {
+				handleException(failureMsg, null);
+			}
+			connection.commit();
+		} catch (SQLException e) {
+			handleException(failureMsg, e);
+		}
+	}
+
+	/**
+	 * Har till rent instrument att göra (Query 2), används för att enforca regeln.
+	 */
 	private Integer retrieveMaxInstrumentRule() throws SchoolDBException {
-        String failureMsg = "Failed to retrieve maximum instrument rule";
+		String failureMsg = "Failed to retrieve maximum instrument rule";
 		ResultSet result = null;
 		Integer maxInstruments = null;
 		try {
 			result = getMaxAllowedInstrumentStmt.executeQuery();
 			if (result.next()) {
-				maxInstruments = result.getInt("rule_value");
+				maxInstruments = result.getInt(RULE_VALUE_NAME);
 			}
-            connection.commit();
+			connection.commit();
 		} catch (SQLException e) {
 			handleException(failureMsg, e);
 		} finally {
-            closeResultSet(failureMsg, result);
-        }
+			closeResultSet(failureMsg, result);
+		}
 		return maxInstruments;
 	}
 
@@ -83,317 +222,88 @@ public class SchoolDAO {
 		String failureMsg = "Failed to retrieve maximum renting period";
 		ResultSet result = null;
 		Integer maxRentingPeriod = null;
-	try {
-		result = getMaxRentingPeriodStmt.executeQuery();
-		if (result.next()) {
-			maxRentingPeriod = result.getInt("rule_value");
+		try {
+			result = getMaxRentingPeriodStmt.executeQuery();
+			if (result.next()) {
+				maxRentingPeriod = result.getInt(RULE_VALUE_NAME);
+			}
+			connection.commit();
+		} catch (SQLException e) {
+			handleException(failureMsg, e);
+		} finally {
+			closeResultSet(failureMsg, result);
 		}
-		
-		connection.commit();
-	} catch (SQLException e) {
-		handleException(failureMsg, e);
-	}
-	finally {
-		closeResultSet(failureMsg, result);
-	}
 		return maxRentingPeriod;
 	}
 
-	private boolean isDateWithinRange(String dateTo, int maxRentingPeriod) throws SchoolDBException {
-		String failureMsg = "Failed to retrieve date within range";
-		ResultSet result = null;
-		Integer isDateWithinRange = null;
-		
+	/*
+	 * Denna metod sammanställer retrieveMaxRentingPeriod och
+	 * retrieveMaxInstrumentRule
+	 * Genom att anropa på dem, och säkerställa att reglerna tillhandlas.
+	 */
+	private boolean checkRentalRules(int studentId, String dateTo) throws SchoolDBException {
+		boolean status = true;
+		Integer maxInstruments = retrieveMaxInstrumentRule();
+		Integer rentedInstruments = getActiveRentals(studentId).size();
+		Integer maxRentingPeriod = retrieveMaxRentingPeriod();
+		DateValidator dv = new DateValidator(maxRentingPeriod);
+		if (rentedInstruments >= maxInstruments) {
+			System.out.println("You have already rented the maximum number of instruments allowed.");
+			return false;
+		}
+		if (dv.isDateWithinRange(dateTo)) {
+			System.out.println("Maximum renting period exceeded. Please select a date within the allowed range.");
+			return false;
+		}
+		return status;
+	}
+
+	private void handleException(String failureMsg, Exception cause) throws SchoolDBException {
+		String completeFailureMsg = failureMsg;
 		try {
-			// Calculate the maximum allowed date in SQL
-			result = getDateRangeStmt.executeQuery();
-
-			// Get the maximum allowed date from the SQL result
-			if (result.next()) {
-				java.sql.Date maxAllowedDate = result.getDate(1);
-
-				// Parse the input date string to Date
-				java.sql.Date toDate = java.sql.Date.valueOf(dateTo);
-
-				// Check if toDate is within the allowed range
-				return !toDate.after(maxAllowedDate);
-			}
-			
-		} catch (SQLException e) {
-			handleException("Failed to retrieve data within range", e);
+			connection.rollback();
+		} catch (SQLException rollbackExc) {
+			completeFailureMsg = completeFailureMsg +
+					". Also failed to rollback transaction because of: " + rollbackExc.getMessage();
 		}
-		finally {
-			closeResultSet(failureMsg, result);
+
+		if (cause != null) {
+			throw new SchoolDBException(failureMsg, cause);
+		} else {
+			throw new SchoolDBException(failureMsg);
 		}
-		return isDateWithinRange; // Error occurred or no result, default to false
 	}
 
-	//Fråga 1
-	public void listInstrument(String instrumentType) {
+	private void closeResultSet(String failureMsg, ResultSet result) throws SchoolDBException {
 		try {
-
-			// SQL query to retrieve available instruments of a certain type
-			String query = "SELECT i.instrument_id, s.instrument_name, s.brand, s.renting_price, s.availability_stock " +
-					"FROM instrument i " +
-					"JOIN instrument_stock s ON i.stock_id = s.stock_id " +
-					"WHERE s.instrument_name = '" + instrumentType + "' AND CAST(s.availability_stock AS INTEGER) > 0";
-
-			// Create a prepared statement with a parameter
-			Connection connection = connect();
-			Statement statement = connection.createStatement();
-			ResultSet resultSet = statement.executeQuery(query);
-
-			// Check if there are available instruments
-			if (!resultSet.next()) {
-				System.out.println("No available instruments of type: " + instrumentType);
-			} else {
-				// Display available instruments
-				do {
-					int instrumentId = resultSet.getInt("instrument_id");
-					String instrumentName = resultSet.getString("instrument_name");
-					String brand = resultSet.getString("brand");
-					int rentingPrice = resultSet.getInt("renting_price");
-					String availableStock = resultSet.getString("availability_stock");
-
-					// Display instrument details
-					System.out.println("Instrument ID: " + instrumentId +
-							", Name: " + instrumentName +
-							", Brand: " + brand +
-							", Renting Price: " + rentingPrice + 
-							", Available Stock: " + availableStock);
-				} while (resultSet.next());
-			}
-			// Close resources
-			resultSet.close();
-			statement.close();
-			connection.close();
-		} catch (SQLException e) {
-			handleException("Failed to retrieve available instruments", e);
+			result.close();
+		} catch (Exception e) {
+			throw new SchoolDBException(failureMsg + " Could not close result set.", e);
 		}
 	}
-
-	//Fråga 3
-	public void terminateRental(int studentID, int rentalID) {
-	    try {
-	        terminateRentalStmt.setString(1, "Terminated");
-	        terminateRentalStmt.setInt(2, studentID);
-	        terminateRentalStmt.setInt(3, rentalID);
-
-	        int rowsAffected = terminateRentalStmt.executeUpdate();
-
-	        if (rowsAffected > 0) {
-	            System.out.println("Rental terminated successfully.");
-	        } else {
-	            System.out.println("Failed to terminate rental.");
-	        }
-
-	        terminateRentalStmt.close();
-	        connection.commit();
-	        connection.close();
-	    } catch (SQLException e) {
-	        handleException("Failed to terminate rental.", e);
-	    }
-	}
-			
-		
-
-	public void showActiveRentals(int studentID) {
-		try {
-			Connection connection = connect();
-
-			String fetchQuery = "SELECT * FROM renting_period " +
-					"WHERE student_id = " + studentID +
-					" AND status = 'Active'";
-
-			Statement statement = connection.createStatement();
-			ResultSet activeRentals = statement.executeQuery(fetchQuery);
-
-			System.out.println("Active Rentals for Student ID: " + studentID);
-			int count = 0;
-			while (activeRentals.next()) {
-				int rentalId = activeRentals.getInt("rental_id");
-				int instrumentId = activeRentals.getInt("instrument_id");
-				String dateFrom = activeRentals.getString("date_from");
-				String dateTo = activeRentals.getString("date_to");
-
-				System.out.println(count + ". Instrument ID: " + instrumentId +
-						", Rental Nr: " + rentalId +
-						", Date From: " + dateFrom +
-						", Date To: " + dateTo);
-			}
-			activeRentals.close();
-			statement.close();
-			connection.close();
-		} catch (SQLException e) {
-			handleException("Failed to retrieve active rentals.", e);
-			
-		}
-	}
-
-	public int countActiveRentals(int studentId) {
-		int rentedInstruments = 0;
-		try {
-			Connection connection = connect();
-			String countQuery = "SELECT COUNT(*) FROM renting_period " +
-					"WHERE student_id = ? AND status = 'Active'";
-			PreparedStatement countStatement = connection.prepareStatement(countQuery);
-			countStatement.setInt(1, studentId);
-			ResultSet countResult = countStatement.executeQuery();
-
-			if (countResult.next()) {
-				rentedInstruments = countResult.getInt(1);
-			}
-
-			// Close resources
-			countResult.close();
-			countStatement.close();
-			connection.close();
-		} catch (SQLException e) {
-			handleException("Failed to count active rentals.",e);
-			
-		}
-		return rentedInstruments;
-	}
-
-	//Query 4
-	public void rentInstrument(int studentId, int instrumentId, String dateTo) {
-		try {
-			Connection connection = connect();
-			// Retrieve the maximum number of instruments allowed for rental
-			int maxInstruments = retrieveMaxInstrumentRule();
-
-			// Check the number of instruments already rented by the student
-			int rentedInstruments = countActiveRentals(studentId);
-
-			// Check if the student has already rented the maximum number of instruments
-			if (rentedInstruments >= maxInstruments) {
-				System.out.println("You have already rented the maximum number of instruments allowed.");
-				return; // Exit method if the limit is reached
-			}
-
-			// Retrieve the maximum renting period from school rules
-			int maxRentingPeriod = retrieveMaxRentingPeriod();
-
-			// Check if the dateTo is within the allowed range (maxRentingPeriod from the
-			// current date)
-			if (!isDateWithinRange(dateTo, maxRentingPeriod)) {
-				System.out.println("Maximum renting period exceeded. Please select a date within the allowed range.");
-				return; // Exit method if the date exceeds the maximum range
-			}
-
-			// Proceed with renting the instrument
-			String rentQuery = "INSERT INTO renting_period (student_id, date_from, date_to, instrument_id) " +
-					"VALUES (" + studentId + ", CURRENT_DATE, DATE '" + dateTo + "', " + instrumentId + ")";
-			Statement rentStatement = connection.createStatement();
-			int rowsAffected = rentStatement.executeUpdate(rentQuery);
-
-			if (rowsAffected > 0) {
-				System.out.println("Instrument rented successfully.");
-			} else {
-				System.out.println("Failed to rent the instrument.");
-			}
-
-			// Close resources
-			rentStatement.close();
-			connection.close();
-		} catch (SQLException e) {
-			handleException("Failed to rent instrument.", e);
-			
-		}
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	private void connectToSchoolDB() throws SQLException{
-		String url = "jdbc:postgresql://localhost:5432/soundgood_music_school"; // Update with your database name
-		String username = "postgres";
-		String password = "seemaärbäst";
-
-		connection = DriverManager.getConnection(url, username, password);
-		connection.setAutoCommit(false);
-    }
-	
-	public void commit() throws SchoolDBException {
-        try {
-            connection.commit();
-        } catch (SQLException e) {
-            handleException("Failed to commit", e);
-        }
-    }
-
-    private void handleException(String failureMsg, Exception cause) throws SchoolDBException {
-        String completeFailureMsg = failureMsg;
-        try {
-            connection.rollback();
-        } catch (SQLException rollbackExc) {
-            completeFailureMsg = completeFailureMsg +
-                    ". Also failed to rollback transaction because of: " + rollbackExc.getMessage();
-        }
-
-        if (cause != null) {
-            throw new SchoolDBException(failureMsg, cause);
-        } else {
-            throw new SchoolDBException(failureMsg);
-        }
-    }
-    
-    private void closeResultSet(String failureMsg, ResultSet result) throws SchoolDBException {
-        try {
-            result.close();
-        } catch (Exception e) {
-            throw new SchoolDBException(failureMsg + " Could not close result set.", e);
-        }
-    }
 
 	private void preparedStatements() throws SQLException {
-		getAllRentalStmt = connection.prepareStatement("SELECT * FROM " + RENTING_TABLE_NAME);
-		updateRentalStatusStmt = connection.prepareStatement("UPDATE " + RENTING_TABLE_NAME + " SET "
-				+ RENTAL_STATUS_NAME + " = '?' WHERE " + RENTAL_ID_NAME + "= ?");
 		getMaxAllowedInstrumentStmt = connection.prepareStatement("SELECT " + RULE_VALUE_NAME + " FROM "
 				+ RULE_TABLE_NAME + " WHERE " + RULE_DESCRIPTION_NAME + " LIKE '%" + MAX_INSTRUMENT_RULE + "%'");
 		getMaxRentingPeriodStmt = connection.prepareStatement("SELECT " + RULE_VALUE_NAME + " FROM " + RULE_TABLE_NAME
 				+ " WHERE " + RULE_DESCRIPTION_NAME + " LIKE '%" + MAX_PERIOD_RULE + "%'");
-		getDateRangeStmt = connection.prepareStatement("SELECT CURRENT_DATE + INTERVAL '?' MONTH");
-		listAvailableInstrumentStmt = connection.prepareStatement(
-				"SELECT i." + INSTRUMENT_ID_NAME + ", s." + INSTRUMENT_NAME + ", s." + INSTRUMENT_BRAND_NAME + ", s."
-						+ INSTRUMENT_RENTING_PRICE + " FROM " + INSTRUMENT_TABLE_NAME + " i JOIN " + STOCK_TABLE_NAME
-						+ " s ON i." + STOCK_ID_NAME + "= s." + STOCK_ID_NAME + " WHERE s." + INSTRUMENT_NAME
-						+ " = '?' AND CAST(s." + STOCK_AVAILABLITY_NAME + " AS INTEGER) > ?");
+		listAvailableInstrumentStmt = connection.prepareStatement("SELECT i." + INSTRUMENT_ID_NAME + ", s."
+				+ STOCK_ID_NAME + ", s." + INSTRUMENT_NAME + ", s." + INSTRUMENT_BRAND_NAME + ", s."
+				+ INSTRUMENT_RENTING_PRICE + " FROM " + INSTRUMENT_TABLE_NAME + " i JOIN " + STOCK_TABLE_NAME
+				+ " s ON i." + STOCK_ID_NAME + "= s." + STOCK_ID_NAME + " WHERE s." + INSTRUMENT_NAME
+				+ " = ? AND CAST(s." + STOCK_AVAILABLITY_NAME + " AS INTEGER) > ?");
 		terminateRentalStmt = connection.prepareStatement("UPDATE " + RENTING_TABLE_NAME + " SET "
-				+ RENTAL_STATUS_NAME + " = '?' WHERE " + STUDENT_ID_NAME + " = ? AND " + RENTAL_ID_NAME + " = ? AND "
-				+ RENTAL_STATUS_NAME + " = '?'");
+				+ RENTAL_STATUS_NAME + " = ?, " + END_DATE_NAME + " = CURRENT_DATE WHERE "
+				+ STUDENT_ID_NAME + " = ? AND " + RENTAL_ID_NAME + " = ? AND "
+				+ RENTAL_STATUS_NAME + " = ?");
 		showActiveRentalStmt = connection.prepareStatement("SELECT * FROM " + RENTING_TABLE_NAME + "WHERE "
-				+ STUDENT_ID_NAME + " = ? AND " + RENTAL_STATUS_NAME + " = '?'");
-		countActiveRentalStmt = connection.prepareStatement("SELECT COUNT(*) FROM " + RENTING_TABLE_NAME + " WHERE "
 				+ STUDENT_ID_NAME + " = ? AND " + RENTAL_STATUS_NAME + " = '?'");
 		rentInstrumentStmt = connection.prepareStatement(
 				"INSERT INTO " + RENTING_TABLE_NAME + " (" + STUDENT_ID_NAME + "," + START_DATE_NAME + ","
 						+ END_DATE_NAME + "," + INSTRUMENT_ID_NAME + ")  VALUES ( ? , CURRENT_DATE, DATE '?', ? ");
-		incrementAvailableStockStmt = connection.prepareStatement("UPDATE " + STOCK_TABLE_NAME +
-					    " SET " + STOCK_AVAILABLITY_NAME + " = " + STOCK_AVAILABLITY_NAME + " + 1 " +
-					    " WHERE " + STOCK_ID_NAME + " = ?");
-		decrementAvailableStockStmt = connection.prepareStatement("UPDATE " + STOCK_TABLE_NAME +
-			    " SET " + STOCK_AVAILABLITY_NAME + " = " + STOCK_AVAILABLITY_NAME + " - 1 " +
-			    " WHERE " + STOCK_ID_NAME + " = ?");
-	}
+		updateInstrumentStmt = connection.prepareStatement("UPDATE " + STOCK_TABLE_NAME +
+				" SET " + STOCK_AVAILABLITY_NAME + " =  '?' WHERE " + STOCK_ID_NAME + " = ? ");
 
+	}
 
 }
