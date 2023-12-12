@@ -63,7 +63,7 @@ public class Instrument implements InstrumentDTO {
 
     @Override
     public String toString() {
-        return "InstrumentDTOImpl{" +
+        return "Available Instrument {" +
                 "instrumentId=" + instrumentId +
                 ", instrumentName='" + instrumentName + '\'' +
                 ", brand='" + brand + '\'' +

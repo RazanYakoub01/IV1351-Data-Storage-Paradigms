@@ -46,6 +46,7 @@ public class SchoolDAO {
 	private PreparedStatement showActiveRentalStmt;
 	private PreparedStatement rentInstrumentStmt;
 	private PreparedStatement updateInstrumentStmt;
+	private PreparedStatement selectInstrumentStmt;
 
 	public SchoolDAO() throws SchoolDBException {
 		try {
@@ -80,6 +81,8 @@ public class SchoolDAO {
 		ResultSet result = null;
 
 		try {
+			listAvailableInstrumentStmt.setString(1, instrumentType);
+			listAvailableInstrumentStmt.setInt(2, 0);
 			result = listAvailableInstrumentStmt.executeQuery();
 			while (result.next()) {
 				int instrumentId = result.getInt(INSTRUMENT_ID_NAME);
@@ -89,7 +92,6 @@ public class SchoolDAO {
 				int rentingPrice = result.getInt(INSTRUMENT_RENTING_PRICE);
 				String availableStock = result.getString(STOCK_AVAILABLITY_NAME);
 
-				// Create an Instrument object and add it to the list
 				Instrument instrument = new Instrument(instrumentId, stockId, instrumentName, brand, rentingPrice,
 						availableStock);
 				instrumentList.add(instrument);
@@ -105,14 +107,14 @@ public class SchoolDAO {
 	}
 
 	// Query 2
-	public void rentInstrument(int instrumentId, int studentId, String dateTo) throws SchoolDBException {
+	public void rentInstrument(int instrumentId, int studentId, Date dateTo) throws SchoolDBException {
 		String failureMsg = "Failed to rent instrument";
 		if (!checkRentalRules(studentId, dateTo)) {
 			return;
 		}
 		try {
 			rentInstrumentStmt.setInt(1, studentId);
-			rentInstrumentStmt.setString(2, dateTo);
+			rentInstrumentStmt.setDate(2, dateTo);
 			rentInstrumentStmt.setInt(3, instrumentId);
 			int rowsAffected = rentInstrumentStmt.executeUpdate();
 			if (rowsAffected != 1) {
@@ -122,6 +124,36 @@ public class SchoolDAO {
 		} catch (SQLException e) {
 			handleException(failureMsg, e);
 		}
+	}
+
+	public Instrument getInstrumentById(int instrumentId) throws SchoolDBException {
+		String failureMsg = "Failed to get instrument";
+		Instrument instrument = null;
+		ResultSet result = null;
+		try {
+			selectInstrumentStmt.setInt(1, instrumentId);
+			result = selectInstrumentStmt.executeQuery();
+
+			// Process the result and create an Instrument object
+			if (result.next()) {
+				int stockId = result.getInt("stock_Id");
+				String instrumentName = result.getString("instrument_name");
+				String brand = result.getString("brand");
+				int rentingPrice = result.getInt("renting_price");
+				String availabilityStock = result.getString("availability_stock");
+
+				// Create the Instrument object using the retrieved data
+				instrument = new Instrument(instrumentId, stockId, instrumentName, brand, rentingPrice,
+						availabilityStock);
+			}
+
+			result.close();
+		} catch (SQLException e) {
+			handleException(failureMsg, e);
+		} finally {
+			closeResultSet(failureMsg, result);
+		}
+		return instrument;
 	}
 
 	/*
@@ -149,8 +181,9 @@ public class SchoolDAO {
 		List<Rental> activeRentals = new ArrayList<>();
 
 		try {
+			showActiveRentalStmt.setInt(1, studentID);
+			showActiveRentalStmt.setString(2, "Active");
 			result = showActiveRentalStmt.executeQuery();
-
 			while (result.next()) {
 				int rentalId = result.getInt(RENTAL_ID_NAME);
 				int instrumentId = result.getInt(INSTRUMENT_ID_NAME);
@@ -240,7 +273,7 @@ public class SchoolDAO {
 	 * retrieveMaxInstrumentRule
 	 * Genom att anropa på dem, och säkerställa att reglerna tillhandlas.
 	 */
-	private boolean checkRentalRules(int studentId, String dateTo) throws SchoolDBException {
+	private boolean checkRentalRules(int studentId, Date dateTo) throws SchoolDBException {
 		boolean status = true;
 		Integer maxInstruments = retrieveMaxInstrumentRule();
 		Integer rentedInstruments = getActiveRentals(studentId).size();
@@ -274,6 +307,9 @@ public class SchoolDAO {
 	}
 
 	private void closeResultSet(String failureMsg, ResultSet result) throws SchoolDBException {
+		if (result == null) {
+			return;
+		}
 		try {
 			result.close();
 		} catch (Exception e) {
@@ -286,21 +322,27 @@ public class SchoolDAO {
 				+ RULE_TABLE_NAME + " WHERE " + RULE_DESCRIPTION_NAME + " LIKE '%" + MAX_INSTRUMENT_RULE + "%'");
 		getMaxRentingPeriodStmt = connection.prepareStatement("SELECT " + RULE_VALUE_NAME + " FROM " + RULE_TABLE_NAME
 				+ " WHERE " + RULE_DESCRIPTION_NAME + " LIKE '%" + MAX_PERIOD_RULE + "%'");
-		listAvailableInstrumentStmt = connection.prepareStatement("SELECT i." + INSTRUMENT_ID_NAME + ", s."
-				+ STOCK_ID_NAME + ", s." + INSTRUMENT_NAME + ", s." + INSTRUMENT_BRAND_NAME + ", s."
-				+ INSTRUMENT_RENTING_PRICE + " FROM " + INSTRUMENT_TABLE_NAME + " i JOIN " + STOCK_TABLE_NAME
-				+ " s ON i." + STOCK_ID_NAME + "= s." + STOCK_ID_NAME + " WHERE s." + INSTRUMENT_NAME
-				+ " = ? AND CAST(s." + STOCK_AVAILABLITY_NAME + " AS INTEGER) > ?");
+		listAvailableInstrumentStmt = connection.prepareStatement(
+				"SELECT i." + INSTRUMENT_ID_NAME + ", s." + STOCK_ID_NAME + ", s." + INSTRUMENT_NAME + ", s."
+						+ INSTRUMENT_BRAND_NAME + ", s."
+						+ INSTRUMENT_RENTING_PRICE + ", s." + STOCK_AVAILABLITY_NAME + " FROM " + INSTRUMENT_TABLE_NAME + " i JOIN " + STOCK_TABLE_NAME
+						+ " s ON i." + STOCK_ID_NAME + "= s."
+						+ STOCK_ID_NAME + " WHERE s." + INSTRUMENT_NAME + " = ? AND CAST(s." + STOCK_AVAILABLITY_NAME
+						+ " AS INTEGER) > ?");
 		terminateRentalStmt = connection.prepareStatement("UPDATE " + RENTING_TABLE_NAME + " SET "
 				+ RENTAL_STATUS_NAME + " = ?, " + END_DATE_NAME + " = CURRENT_DATE WHERE "
-				+ STUDENT_ID_NAME + " = ? AND " + RENTAL_ID_NAME + " = ? AND "
-				+ RENTAL_STATUS_NAME + " = ?");
-		showActiveRentalStmt = connection.prepareStatement("SELECT * FROM " + RENTING_TABLE_NAME + "WHERE "
-				+ STUDENT_ID_NAME + " = ? AND " + RENTAL_STATUS_NAME + " = '?'");
+				+ STUDENT_ID_NAME + " = ? AND " + RENTAL_ID_NAME + " = ? ");
+		showActiveRentalStmt = connection.prepareStatement("SELECT * FROM " + RENTING_TABLE_NAME +
+			    " WHERE " + STUDENT_ID_NAME + " = ? AND " + RENTAL_STATUS_NAME + " = ?");
 		rentInstrumentStmt = connection.prepareStatement(
-				"INSERT INTO " + RENTING_TABLE_NAME + " (" + STUDENT_ID_NAME + "," + START_DATE_NAME + ","
-						+ END_DATE_NAME + "," + INSTRUMENT_ID_NAME + ")  VALUES ( ? , CURRENT_DATE, DATE '?', ? ");
+			    "INSERT INTO " + RENTING_TABLE_NAME + " (" + STUDENT_ID_NAME + "," + START_DATE_NAME + "," + END_DATE_NAME + "," + INSTRUMENT_ID_NAME + ") VALUES (?, CURRENT_DATE, ?, ?)");
 		updateInstrumentStmt = connection.prepareStatement("UPDATE " + STOCK_TABLE_NAME +
-				" SET " + STOCK_AVAILABLITY_NAME + " =  '?' WHERE " + STOCK_ID_NAME + " = ? ");
+				" SET " + STOCK_AVAILABLITY_NAME + " = ? WHERE " + STOCK_ID_NAME + " = ? ");
+		selectInstrumentStmt = connection.prepareStatement(
+			    "SELECT i." + INSTRUMENT_ID_NAME + ", s." + STOCK_ID_NAME + ", s." + INSTRUMENT_NAME + ", s." + INSTRUMENT_BRAND_NAME + ", s." + INSTRUMENT_RENTING_PRICE + ", s." + STOCK_AVAILABLITY_NAME +
+			    " FROM " + INSTRUMENT_TABLE_NAME + " i JOIN " + STOCK_TABLE_NAME + " s ON i." + STOCK_ID_NAME + " = s." + STOCK_ID_NAME +
+			    " WHERE i." + INSTRUMENT_ID_NAME + " = ?");
+
+
 	}
 }

@@ -3,6 +3,8 @@
  */
 package main.java.se.kth.iv1351.soundschooldbc.controller;
 
+import java.sql.Date;
+import java.util.Collections;
 import java.util.List;
 
 import main.java.se.kth.iv1351.soundschooldbc.integration.SchoolDAO;
@@ -42,23 +44,19 @@ public class Controller {
         }
     }
 
-    public void rentInstrument(Integer studentId, Integer instrumentId, String dateTo)
+    public void rentInstrument(Integer studentId, Integer instrumentId, Date dateTo)
             throws SchoolDBException, InstrumentException {
         String failureMsg = "Failed to rent instrument";
         try {
             Instrument instrument = null;
-            for (Instrument inst : availableInstrument) {
-                if (inst.getInstrumentID() == instrumentId) {
-                    instrument = inst;
-                    break;
-                }
-            }
+            instrument = soundGoodDB.getInstrumentById(instrumentId);
             if (studentId == null || instrument == null || dateTo == null) {
                 throw new InstrumentException(failureMsg);
             }
             soundGoodDB.rentInstrument(instrumentId, studentId, dateTo);
             instrument.decrementAvailableStock();
             soundGoodDB.updateInstrumentStock(instrument);
+            System.out.println("Rental is sucessful :) ");
         } catch (SchoolDBException bdbe) {
             throw new InstrumentException(failureMsg, bdbe);
         } catch (Exception e) {
@@ -68,21 +66,28 @@ public class Controller {
     }
 
     public void terminateRental(Integer studentId, Integer rentalId) throws InstrumentException {
-        String failureMsg = "Failed to terminate rental";
+        String failureMsg = "Failed to terminate rental CONTROLLER";
         try {
+            Rental rentalToTerminate = null;
             List<Rental> activeRentals = soundGoodDB.getActiveRentals(studentId);
-            Rental rental = null;
-            for (Rental rent : activeRentals) {
-                if (rent.getRentalId() == rentalId) {
-                    rental = rent;
+            
+            // Find the rental to terminate
+            for (Rental rental : activeRentals) {
+                if (rental.getRentalId() == rentalId) {
+                    rentalToTerminate = rental;
                     break;
                 }
             }
-            if (studentId == null || rental == null) {
-                throw new InstrumentException(failureMsg);
+            // Check if the rental was found
+            if (rentalToTerminate == null) {
+                throw new InstrumentException(failureMsg + ": Rental not found.");
             }
-            rental.setTerminateStatus();
-            soundGoodDB.updateRental(rental);
+
+
+            // Terminate the rental and update
+            rentalToTerminate.setTerminateStatus();
+
+            soundGoodDB.updateRental(rentalToTerminate);
         } catch (SchoolDBException bdbe) {
             throw new InstrumentException(failureMsg, bdbe);
         } catch (Exception e) {
@@ -90,4 +95,16 @@ public class Controller {
             throw e;
         }
     }
+    
+
+    public List<Rental> getActiveRentals(int studentID) {
+        try {
+            return soundGoodDB.getActiveRentals(studentID);
+        } catch (SchoolDBException e) {
+            // Handle exception or log error
+            e.printStackTrace();
+            return Collections.emptyList(); // Return an empty list if there's an error
+        }
+    }
+
 }
