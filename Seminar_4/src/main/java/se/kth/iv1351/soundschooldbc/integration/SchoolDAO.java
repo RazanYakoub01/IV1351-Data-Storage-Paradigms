@@ -79,37 +79,38 @@ public class SchoolDAO {
 		return maxInstruments;
 	}
 
-	private int retrieveMaxRentingPeriod() throws SQLException {
-		Connection connection = connect();
-		Statement statement = connection.createStatement();
-		ResultSet resultSet = statement.executeQuery(
-				"SELECT rule_value FROM school_rules WHERE rule_description LIKE '%Maximum renting period%'");
-
-		int maxRentingPeriod = 0;
-		if (resultSet.next()) {
-			maxRentingPeriod = resultSet.getInt("rule_value");
+	private Integer retrieveMaxRentingPeriod() throws SchoolDBException {
+		String failureMsg = "Failed to retrieve maximum renting period";
+		ResultSet result = null;
+		Integer maxRentingPeriod = null;
+	try {
+		result = getMaxRentingPeriodStmt.executeQuery();
+		if (result.next()) {
+			maxRentingPeriod = result.getInt("rule_value");
 		}
-
-		// Close resources
-		resultSet.close();
-		statement.close();
-		connection.close();
-
+		
+		connection.commit();
+	} catch (SQLException e) {
+		handleException(failureMsg, e);
+	}
+	finally {
+		closeResultSet(failureMsg, result);
+	}
 		return maxRentingPeriod;
 	}
 
-	private boolean isDateWithinRange(String dateTo, int maxRentingPeriod) {
+	private boolean isDateWithinRange(String dateTo, int maxRentingPeriod) throws SchoolDBException {
+		String failureMsg = "Failed to retrieve date within range";
+		ResultSet result = null;
+		Integer isDateWithinRange = null;
+		
 		try {
-			Connection connection = connect();
-
 			// Calculate the maximum allowed date in SQL
-			String query = "SELECT CURRENT_DATE + INTERVAL '" + maxRentingPeriod + "' MONTH";
-			Statement statement = connection.createStatement();
-			ResultSet resultSet = statement.executeQuery(query);
+			result = getDateRangeStmt.executeQuery();
 
 			// Get the maximum allowed date from the SQL result
-			if (resultSet.next()) {
-				java.sql.Date maxAllowedDate = resultSet.getDate(1);
+			if (result.next()) {
+				java.sql.Date maxAllowedDate = result.getDate(1);
 
 				// Parse the input date string to Date
 				java.sql.Date toDate = java.sql.Date.valueOf(dateTo);
@@ -117,15 +118,14 @@ public class SchoolDAO {
 				// Check if toDate is within the allowed range
 				return !toDate.after(maxAllowedDate);
 			}
-
-			resultSet.close();
-			statement.close();
-			connection.close();
+			
 		} catch (SQLException e) {
 			handleException("Failed to retrieve data within range", e);
 		}
-
-		return false; // Error occurred or no result, default to false
+		finally {
+			closeResultSet(failureMsg, result);
+		}
+		return isDateWithinRange; // Error occurred or no result, default to false
 	}
 
 	//Fråga 1
