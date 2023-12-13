@@ -109,10 +109,10 @@ public class SchoolDAO {
 	// Query 2
 	public void rentInstrument(int instrumentId, int studentId, Date dateTo) throws SchoolDBException {
 		String failureMsg = "Failed to rent instrument";
-		if (!checkRentalRules(studentId, dateTo)) {
-			return;
-		}
 		try {
+			if (!checkRentalRules(studentId, dateTo)) {
+				throw new SchoolDBException(failureMsg);
+			}
 			rentInstrumentStmt.setInt(1, studentId);
 			rentInstrumentStmt.setDate(2, dateTo);
 			rentInstrumentStmt.setInt(3, instrumentId);

@@ -90,8 +90,12 @@ public class BlockingInterpreter {
                             System.out.println("Invalid date format. Please use YYYY-MM-DD.");
                             return; 
                         }
+                        try {
+                            ctrl.rentInstrument(studentId, instrumentId, dateTo);
+                        } catch(InstrumentException e) {
+                        	System.out.println("Failed to rent instrument ");
+                        }
 
-                        ctrl.rentInstrument(studentId, instrumentId, dateTo);
                         break;
                     case TERMINATE:
                         System.out.println("Enter student ID: ");

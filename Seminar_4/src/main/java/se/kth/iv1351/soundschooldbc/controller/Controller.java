@@ -46,7 +46,7 @@ public class Controller {
 
     public void rentInstrument(Integer studentId, Integer instrumentId, Date dateTo)
             throws SchoolDBException, InstrumentException {
-        String failureMsg = "Failed to rent instrument";
+        String failureMsg = "Failed to rent instrument CONTROLLER";
         try {
             Instrument instrument = null;
             instrument = soundGoodDB.getInstrumentById(instrumentId);
@@ -83,11 +83,12 @@ public class Controller {
                 throw new InstrumentException(failureMsg + ": Rental not found.");
             }
 
-
-            // Terminate the rental and update
+            // Terminate the rental and update instrument stock
             rentalToTerminate.setTerminateStatus();
-
             soundGoodDB.updateRental(rentalToTerminate);
+            Instrument inst = soundGoodDB.getInstrumentById (rentalToTerminate.getInstrumentId());
+            inst.incrementAvailableStock();
+            soundGoodDB.updateInstrumentStock(inst);
         } catch (SchoolDBException bdbe) {
             throw new InstrumentException(failureMsg, bdbe);
         } catch (Exception e) {
