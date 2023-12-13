@@ -110,9 +110,6 @@ public class SchoolDAO {
 	public void rentInstrument(int instrumentId, int studentId, Date dateTo) throws SchoolDBException {
 		String failureMsg = "Failed to rent instrument";
 		try {
-			if (!checkRentalRules(studentId, dateTo)) {
-				throw new SchoolDBException(failureMsg);
-			}
 			rentInstrumentStmt.setInt(1, studentId);
 			rentInstrumentStmt.setDate(2, dateTo);
 			rentInstrumentStmt.setInt(3, instrumentId);
@@ -232,7 +229,7 @@ public class SchoolDAO {
 	/**
 	 * Har till rent instrument att göra (Query 2), används för att enforca regeln.
 	 */
-	private Integer retrieveMaxInstrumentRule() throws SchoolDBException {
+	public Integer retrieveMaxInstrumentRule() throws SchoolDBException {
 		String failureMsg = "Failed to retrieve maximum instrument rule";
 		ResultSet result = null;
 		Integer maxInstruments = null;
@@ -250,7 +247,7 @@ public class SchoolDAO {
 		return maxInstruments;
 	}
 
-	private Integer retrieveMaxRentingPeriod() throws SchoolDBException {
+	public Integer retrieveMaxRentingPeriod() throws SchoolDBException {
 		String failureMsg = "Failed to retrieve maximum renting period";
 		ResultSet result = null;
 		Integer maxRentingPeriod = null;
@@ -268,27 +265,7 @@ public class SchoolDAO {
 		return maxRentingPeriod;
 	}
 
-	/*
-	 * Denna metod sammanställer retrieveMaxRentingPeriod och
-	 * retrieveMaxInstrumentRule
-	 * Genom att anropa på dem, och säkerställa att reglerna tillhandlas.
-	 */
-	private boolean checkRentalRules(int studentId, Date dateTo) throws SchoolDBException {
-		boolean status = true;
-		Integer maxInstruments = retrieveMaxInstrumentRule();
-		Integer rentedInstruments = getActiveRentals(studentId).size();
-		Integer maxRentingPeriod = retrieveMaxRentingPeriod();
-		DateValidator dv = new DateValidator(maxRentingPeriod);
-		if (rentedInstruments >= maxInstruments) {
-			System.out.println("You have already rented the maximum number of instruments allowed.");
-			return false;
-		}
-		if (dv.isDateWithinRange(dateTo)) {
-			System.out.println("Maximum renting period exceeded. Please select a date within the allowed range.");
-			return false;
-		}
-		return status;
-	}
+
 
 	private void handleException(String failureMsg, Exception cause) throws SchoolDBException {
 		String completeFailureMsg = failureMsg;
@@ -325,24 +302,27 @@ public class SchoolDAO {
 		listAvailableInstrumentStmt = connection.prepareStatement(
 				"SELECT i." + INSTRUMENT_ID_NAME + ", s." + STOCK_ID_NAME + ", s." + INSTRUMENT_NAME + ", s."
 						+ INSTRUMENT_BRAND_NAME + ", s."
-						+ INSTRUMENT_RENTING_PRICE + ", s." + STOCK_AVAILABLITY_NAME + " FROM " + INSTRUMENT_TABLE_NAME + " i JOIN " + STOCK_TABLE_NAME
+						+ INSTRUMENT_RENTING_PRICE + ", s." + STOCK_AVAILABLITY_NAME + " FROM " + INSTRUMENT_TABLE_NAME + 
+						" i JOIN " + STOCK_TABLE_NAME
 						+ " s ON i." + STOCK_ID_NAME + "= s."
-						+ STOCK_ID_NAME + " WHERE s." + INSTRUMENT_NAME + " = ? AND CAST(s." + STOCK_AVAILABLITY_NAME
-						+ " AS INTEGER) > ?");
+						+ STOCK_ID_NAME + " WHERE s." + INSTRUMENT_NAME + " = ? AND CAST(s." + 
+						STOCK_AVAILABLITY_NAME +" AS INTEGER) > ?");
 		terminateRentalStmt = connection.prepareStatement("UPDATE " + RENTING_TABLE_NAME + " SET "
 				+ RENTAL_STATUS_NAME + " = ?, " + END_DATE_NAME + " = CURRENT_DATE WHERE "
 				+ STUDENT_ID_NAME + " = ? AND " + RENTAL_ID_NAME + " = ? ");
 		showActiveRentalStmt = connection.prepareStatement("SELECT * FROM " + RENTING_TABLE_NAME +
 			    " WHERE " + STUDENT_ID_NAME + " = ? AND " + RENTAL_STATUS_NAME + " = ?");
 		rentInstrumentStmt = connection.prepareStatement(
-			    "INSERT INTO " + RENTING_TABLE_NAME + " (" + STUDENT_ID_NAME + "," + START_DATE_NAME + "," + END_DATE_NAME + "," + INSTRUMENT_ID_NAME + ") VALUES (?, CURRENT_DATE, ?, ?)");
+			    "INSERT INTO " + RENTING_TABLE_NAME + " (" + STUDENT_ID_NAME + "," + START_DATE_NAME + "," + 
+		END_DATE_NAME + "," + INSTRUMENT_ID_NAME + ") VALUES (?, CURRENT_DATE, ?, ?)");
 		updateInstrumentStmt = connection.prepareStatement("UPDATE " + STOCK_TABLE_NAME +
 				" SET " + STOCK_AVAILABLITY_NAME + " = ? WHERE " + STOCK_ID_NAME + " = ? ");
 		selectInstrumentStmt = connection.prepareStatement(
-			    "SELECT i." + INSTRUMENT_ID_NAME + ", s." + STOCK_ID_NAME + ", s." + INSTRUMENT_NAME + ", s." + INSTRUMENT_BRAND_NAME + ", s." + INSTRUMENT_RENTING_PRICE + ", s." + STOCK_AVAILABLITY_NAME +
-			    " FROM " + INSTRUMENT_TABLE_NAME + " i JOIN " + STOCK_TABLE_NAME + " s ON i." + STOCK_ID_NAME + " = s." + STOCK_ID_NAME +
+			    "SELECT i." + INSTRUMENT_ID_NAME + ", s." + STOCK_ID_NAME + ", s." + 
+		INSTRUMENT_NAME + ", s." + INSTRUMENT_BRAND_NAME + ", s." + INSTRUMENT_RENTING_PRICE + ", s." + 
+			    		STOCK_AVAILABLITY_NAME +
+			    " FROM " + INSTRUMENT_TABLE_NAME + " i JOIN " + STOCK_TABLE_NAME + " s ON i." + 
+			    		STOCK_ID_NAME + " = s." + STOCK_ID_NAME +
 			    " WHERE i." + INSTRUMENT_ID_NAME + " = ?");
-
-
 	}
 }

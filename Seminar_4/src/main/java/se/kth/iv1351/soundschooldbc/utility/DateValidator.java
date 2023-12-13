@@ -6,20 +6,18 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public class DateValidator {
-    private int maxRentingPeriod;
 
-    public DateValidator(int maxRentingPeriod) {
-        this.maxRentingPeriod = maxRentingPeriod;
-    }
 
-    public boolean isDateWithinRange(Date dateTo) {
-        LocalDate currentDate = LocalDate.now();
-        LocalDate allowedDate = currentDate.plusMonths(maxRentingPeriod);
+	public static void validateDateWithinRange(Date dateTo, int maxRentingPeriod) throws DateOutOfRangeException {
+	    LocalDate currentDate = LocalDate.now();
+	    LocalDate allowedDate = currentDate.plusMonths(maxRentingPeriod);
 
-        // Convert java.sql.Date to LocalDate
-        LocalDate dateToCheck = dateTo.toLocalDate();
+	    // Convert java.util.Date to LocalDate
+	    LocalDate dateToCheck = dateTo.toLocalDate(); // This directly converts to LocalDate
 
-        return dateToCheck.isAfter(allowedDate);
-    }
+	    if (dateToCheck.isAfter(allowedDate)) {
+	        throw new DateOutOfRangeException("Date is beyond the allowed range.");
+	    }
+	}
 
 }
