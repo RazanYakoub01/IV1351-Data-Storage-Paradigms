@@ -143,8 +143,7 @@ public class SchoolDAO {
 				instrument = new Instrument(instrumentId, stockId, instrumentName, brand, rentingPrice,
 						availabilityStock);
 			}
-
-			result.close();
+			connection.commit();
 		} catch (SQLException e) {
 			handleException(failureMsg, e);
 		} finally {
@@ -191,6 +190,7 @@ public class SchoolDAO {
 				Rental rental = new Rental(studentID, rentalId, instrumentId, dateFrom, dateTo, rentalStatus);
 				activeRentals.add(rental);
 			}
+			connection.commit();
 
 		} catch (SQLException e) {
 			handleException("Failed to retrieve active rentals.", e);
