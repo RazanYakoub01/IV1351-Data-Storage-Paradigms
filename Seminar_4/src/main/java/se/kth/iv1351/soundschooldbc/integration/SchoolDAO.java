@@ -75,7 +75,7 @@ public class SchoolDAO {
 	}
 
 	// Query 1
-	public List<Instrument> listInstrument(String instrumentType) throws SchoolDBException {
+	public List<Instrument> readAvailableInstrument(String instrumentType) throws SchoolDBException {
 		List<Instrument> instrumentList = new ArrayList<>();
 		String failureMsg = "Failed to retrieve available instruments of type: " + instrumentType;
 		ResultSet result = null;
@@ -107,7 +107,7 @@ public class SchoolDAO {
 	}
 
 	// Query 2
-	public void rentInstrument(int instrumentId, int studentId, Date dateTo) throws SchoolDBException {
+	public void createRentedInstrument(int instrumentId, int studentId, Date dateTo) throws SchoolDBException {
 		String failureMsg = "Failed to rent instrument";
 		try {
 			rentInstrumentStmt.setInt(1, studentId);
@@ -123,7 +123,7 @@ public class SchoolDAO {
 		}
 	}
 
-	public Instrument getInstrumentById(int instrumentId) throws SchoolDBException {
+	public Instrument readInstrumentById(int instrumentId) throws SchoolDBException {
 		String failureMsg = "Failed to get instrument";
 		Instrument instrument = null;
 		ResultSet result = null;
@@ -171,7 +171,7 @@ public class SchoolDAO {
 		}
 	}
 
-	public List<Rental> getActiveRentals(int studentID) throws SchoolDBException {
+	public List<Rental> readActiveRentals(int studentID) throws SchoolDBException {
 		String failureMsg = "Failed to retrieve active rentals";
 		ResultSet result = null;
 		List<Rental> activeRentals = new ArrayList<>();
@@ -229,7 +229,7 @@ public class SchoolDAO {
 	/**
 	 * Har till rent instrument att göra (Query 2), används för att enforca regeln.
 	 */
-	public Integer retrieveMaxInstrumentRule() throws SchoolDBException {
+	public Integer readMaxInstrumentRule() throws SchoolDBException {
 		String failureMsg = "Failed to retrieve maximum instrument rule";
 		ResultSet result = null;
 		Integer maxInstruments = null;
@@ -247,7 +247,7 @@ public class SchoolDAO {
 		return maxInstruments;
 	}
 
-	public Integer retrieveMaxRentingPeriod() throws SchoolDBException {
+	public Integer readMaxRentingPeriod() throws SchoolDBException {
 		String failureMsg = "Failed to retrieve maximum renting period";
 		ResultSet result = null;
 		Integer maxRentingPeriod = null;

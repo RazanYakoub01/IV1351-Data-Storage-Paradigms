@@ -40,7 +40,7 @@ public class Controller {
     public List<Instrument> getAvailableInstrument(String instrumentName) throws InstrumentException {
         String failureMsg = "Could not get available instruments for: " + instrumentName;
         try {
-            availableInstrument = soundGoodDB.listInstrument(instrumentName);
+            availableInstrument = soundGoodDB.readAvailableInstrument(instrumentName);
             return availableInstrument;
         } catch (Exception e) {
             throw new InstrumentException(failureMsg, e);
@@ -52,18 +52,18 @@ public class Controller {
         String failureMsg = "Failed to rent instrument CONTROLLER";
         try {
             Instrument instrument = null;
-            instrument = soundGoodDB.getInstrumentById(instrumentId);
+            instrument = soundGoodDB.readInstrumentById(instrumentId);
             if (studentId == null || instrument == null || dateTo == null) {
                 throw new InstrumentException(failureMsg);
             }
             String instrumentStock = instrument.getInstrumentAvailableStock();
             InstrumentAvailability.checkInstrumentAvailability(instrumentStock);
-            int studentRentals = soundGoodDB.getActiveRentals(studentId).size();
-            int maxAllowedRentals = soundGoodDB.retrieveMaxInstrumentRule();
+            int studentRentals = soundGoodDB.readActiveRentals(studentId).size();
+            int maxAllowedRentals = soundGoodDB.readMaxInstrumentRule();
             StudentRental.checkStudentRentalAvailability(studentRentals,maxAllowedRentals);
-            int maxAllowedRentingPeriod = soundGoodDB.retrieveMaxRentingPeriod();
+            int maxAllowedRentingPeriod = soundGoodDB.readMaxRentingPeriod();
             DateValidator.validateDateWithinRange(dateTo,maxAllowedRentingPeriod);
-            soundGoodDB.rentInstrument(instrumentId, studentId, dateTo);
+            soundGoodDB.createRentedInstrument(instrumentId, studentId, dateTo);
             instrument.decrementAvailableStock();
             soundGoodDB.updateInstrumentStock(instrument);
             System.out.println("Rental is sucessful :) ");
@@ -88,7 +88,7 @@ public class Controller {
         String failureMsg = "Failed to terminate rental CONTROLLER";
         try {
             Rental rentalToTerminate = null;
-            List<Rental> activeRentals = soundGoodDB.getActiveRentals(studentId);
+            List<Rental> activeRentals = soundGoodDB.readActiveRentals(studentId);
             for (Rental rental : activeRentals) {
                 if (rental.getRentalId() == rentalId) {
                     rentalToTerminate = rental;
@@ -100,7 +100,7 @@ public class Controller {
             }
             rentalToTerminate.setTerminateStatus();
             soundGoodDB.updateRental(rentalToTerminate);
-            Instrument inst = soundGoodDB.getInstrumentById (rentalToTerminate.getInstrumentId());
+            Instrument inst = soundGoodDB.readInstrumentById (rentalToTerminate.getInstrumentId());
             inst.incrementAvailableStock();
             soundGoodDB.updateInstrumentStock(inst);
         } catch (SchoolDBException bdbe) {
@@ -114,7 +114,7 @@ public class Controller {
 
     public List<Rental> getActiveRentals(int studentID) {
         try {
-            return soundGoodDB.getActiveRentals(studentID);
+            return soundGoodDB.readActiveRentals(studentID);
         } catch (SchoolDBException e) {
             e.printStackTrace();
             return Collections.emptyList();
