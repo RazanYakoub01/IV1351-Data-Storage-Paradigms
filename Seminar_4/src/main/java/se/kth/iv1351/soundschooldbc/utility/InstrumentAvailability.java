@@ -12,7 +12,7 @@ public class InstrumentAvailability {
 	public static void checkInstrumentAvailability(String instrumentStock) throws InstrumentAvailabilityException {
 	    int availableStock = Integer.parseInt(instrumentStock);
 	    if (availableStock <= 0) {
-	        throw new InstrumentAvailabilityException("Instrument stock is zero or less.");
+	        throw new InstrumentAvailabilityException("Instrument stock is zero - Not available!");
 	    }
 	}
 
