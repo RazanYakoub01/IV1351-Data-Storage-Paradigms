@@ -122,6 +122,25 @@ public class SchoolDAO {
 			handleException(failureMsg, e);
 		}
 	}
+	
+	/*
+	 * Används när man rentat ett instrument eller terminerat en rental.
+	 */
+	public void updateInstrumentStock(Instrument instrument) throws SchoolDBException {
+		String failureMsg = "Failed to update instrument Stock";
+		String newInstrumentStock = instrument.getInstrumentAvailableStock();
+		try {
+			updateInstrumentStmt.setString(1, newInstrumentStock);
+			updateInstrumentStmt.setInt(2, instrument.getStockID());
+			int rowsAffected = updateInstrumentStmt.executeUpdate();
+			if (rowsAffected != 1) {
+				handleException(failureMsg, null);
+			}
+			connection.commit();
+		} catch (SQLException e) {
+			handleException(failureMsg, e);
+		}
+	}
 
 	public Instrument readInstrumentById(int instrumentId) throws SchoolDBException {
 		String failureMsg = "Failed to get instrument";
@@ -152,24 +171,7 @@ public class SchoolDAO {
 		return instrument;
 	}
 
-	/*
-	 * Används när man rentat ett instrument eller terminerat en rental.
-	 */
-	public void updateInstrumentStock(Instrument instrument) throws SchoolDBException {
-		String failureMsg = "Failed to update instrument Stock";
-		String newInstrumentStock = instrument.getInstrumentAvailableStock();
-		try {
-			updateInstrumentStmt.setString(1, newInstrumentStock);
-			updateInstrumentStmt.setInt(2, instrument.getStockID());
-			int rowsAffected = updateInstrumentStmt.executeUpdate();
-			if (rowsAffected != 1) {
-				handleException(failureMsg, null);
-			}
-			connection.commit();
-		} catch (SQLException e) {
-			handleException(failureMsg, e);
-		}
-	}
+	
 
 	public List<Rental> readActiveRentals(int studentID) throws SchoolDBException {
 		String failureMsg = "Failed to retrieve active rentals";
@@ -306,7 +308,7 @@ public class SchoolDAO {
 						" i JOIN " + STOCK_TABLE_NAME
 						+ " s ON i." + STOCK_ID_NAME + "= s."
 						+ STOCK_ID_NAME + " WHERE s." + INSTRUMENT_NAME + " = ? AND CAST(s." + 
-						STOCK_AVAILABLITY_NAME +" AS INTEGER) > ? FOR UPDATE");
+						STOCK_AVAILABLITY_NAME +" AS INTEGER) > ?");
 		terminateRentalStmt = connection.prepareStatement("UPDATE " + RENTING_TABLE_NAME + " SET "
 				+ RENTAL_STATUS_NAME + " = ?, " + END_DATE_NAME + " = CURRENT_DATE WHERE "
 				+ STUDENT_ID_NAME + " = ? AND " + RENTAL_ID_NAME + " = ? ");
@@ -323,6 +325,6 @@ public class SchoolDAO {
 			    		STOCK_AVAILABLITY_NAME +
 			    " FROM " + INSTRUMENT_TABLE_NAME + " i JOIN " + STOCK_TABLE_NAME + " s ON i." + 
 			    		STOCK_ID_NAME + " = s." + STOCK_ID_NAME +
-			    " WHERE i." + INSTRUMENT_ID_NAME + " = ?");
+			    " WHERE i." + INSTRUMENT_ID_NAME + " = ? FOR UPDATE");
 	}
 }
