@@ -306,12 +306,12 @@ public class SchoolDAO {
 						" i JOIN " + STOCK_TABLE_NAME
 						+ " s ON i." + STOCK_ID_NAME + "= s."
 						+ STOCK_ID_NAME + " WHERE s." + INSTRUMENT_NAME + " = ? AND CAST(s." + 
-						STOCK_AVAILABLITY_NAME +" AS INTEGER) > ?");
+						STOCK_AVAILABLITY_NAME +" AS INTEGER) > ? FOR UPDATE");
 		terminateRentalStmt = connection.prepareStatement("UPDATE " + RENTING_TABLE_NAME + " SET "
 				+ RENTAL_STATUS_NAME + " = ?, " + END_DATE_NAME + " = CURRENT_DATE WHERE "
 				+ STUDENT_ID_NAME + " = ? AND " + RENTAL_ID_NAME + " = ? ");
 		showActiveRentalStmt = connection.prepareStatement("SELECT * FROM " + RENTING_TABLE_NAME +
-			    " WHERE " + STUDENT_ID_NAME + " = ? AND " + RENTAL_STATUS_NAME + " = ?");
+			    " WHERE " + STUDENT_ID_NAME + " = ? AND " + RENTAL_STATUS_NAME + " = ? FOR UPDATE");
 		rentInstrumentStmt = connection.prepareStatement(
 			    "INSERT INTO " + RENTING_TABLE_NAME + " (" + STUDENT_ID_NAME + "," + START_DATE_NAME + "," + 
 		END_DATE_NAME + "," + INSTRUMENT_ID_NAME + ") VALUES (?, CURRENT_DATE, ?, ?)");
